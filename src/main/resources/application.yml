@@ -1,0 +1,16 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: indexwan123
+    url: jdbc:mysql://101.43.195.41:3306/student?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+
+mybatis-plus:
+  global-config:
+    db-config:
+      id-type: auto
+  type-aliases-package: com.dxy.pojo
