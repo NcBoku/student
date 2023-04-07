@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @MapperScan("com.dxy.config.mapper")
-public class MybatisPlus {
+public class MybatisPlusConfig {
 
     //添加分页插件
     @Bean

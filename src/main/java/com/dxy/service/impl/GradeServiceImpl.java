@@ -8,6 +8,12 @@ import com.dxy.pojo.Grade;
 import com.dxy.pojo.GradeCourse;
 import com.dxy.service.GradeCourseService;
 import com.dxy.service.GradeService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+@Service
 public class GradeServiceImpl extends ServiceImpl<GradeMapper, Grade> implements GradeService {
+
+    @Autowired
+    private GradeMapper gradeMapper;
 }
