@@ -7,7 +7,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: indexwan123
-    url: jdbc:mysql://101.43.195.41:3306/student?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+    url: jdbc:mysql://101.43.195.41:3306/score?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
 
 mybatis-plus:
   global-config:

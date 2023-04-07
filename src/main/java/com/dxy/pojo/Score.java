@@ -9,9 +9,19 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Course {
-    @TableId(type = IdType.AUTO)
+public class Score {
+    @TableId(type= IdType.AUTO)
     private Integer id;
 
-    private String name;
+    private Integer examId;
+
+    private Integer clazzId;
+
+    private Integer studentId;
+
+    private Integer gradeId;
+
+    private Integer courseId;
+
+    private Integer score;
 }
