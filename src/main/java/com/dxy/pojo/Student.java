@@ -13,9 +13,19 @@ public class Student {
     @TableId(type= IdType.AUTO)
     private Integer id;
 
-    private Integer examId;
+    private String number;
+
+    private String name;
+
+    private String sex;
+
+    private String phone;
+
+    private String qq;
+
+    private String photo;
 
     private Integer clazzId;
 
-    private Integer
+    private Integer graderId;
 }
