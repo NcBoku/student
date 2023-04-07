@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClazzSourceTeacher {
+public class ClazzCourseTeacher {
     @TableId(type = IdType.AUTO)
     private Integer id;
 

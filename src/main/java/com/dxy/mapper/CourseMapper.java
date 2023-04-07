@@ -1,2 +1,9 @@
-package com.dxy.mapper;public interface CourseMapper {
+package com.dxy.mapper;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.dxy.pojo.Course;
+import org.apache.ibatis.annotations.Mapper;
+
+@Mapper
+public interface CourseMapper extends BaseMapper<Course> {
 }
