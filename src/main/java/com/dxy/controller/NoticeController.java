@@ -3,6 +3,7 @@ package com.dxy.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.dxy.pojo.Notice;
 import com.dxy.request.NoticeGetRequest;
+import com.dxy.response.NoticePageResponse;
 import com.dxy.service.NoticeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -19,10 +20,8 @@ public class NoticeController {
     private NoticeService noticeService;
 
     @GetMapping("/page")
-    public List<Notice> getPage(@RequestBody NoticeGetRequest request){
-        Page<Notice> noticePage = new Page<Notice>();
-        noticePage.setSize(request.getSize());
-        noticePage.setPages(request.getPage());
-        return noticeService.getPage(noticePage).getRecords();
+    public NoticePageResponse getPage(@RequestBody NoticeGetRequest request){
+
+        return noticeService.getPage(new Page(request.getPage(),request.getSize()));
     }
 }

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dxy.mapper.NoticeMapper;
 import com.dxy.pojo.Notice;
+import com.dxy.response.NoticePageResponse;
 import com.dxy.service.NoticeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,9 +18,13 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
     private NoticeMapper noticeMapper;
 
     @Override
-    public Page<Notice> getPage(Page<Notice> page) {
+    public NoticePageResponse getPage(Page<Notice> page) {
         LambdaQueryWrapper<Notice> wrapper = new LambdaQueryWrapper<>();
         wrapper.orderByDesc(Notice::getTime);
-        return noticeMapper.selectPage(page,wrapper);
+        NoticePageResponse response = new NoticePageResponse();
+        Page<Notice> noticePage = noticeMapper.selectPage(page, wrapper);
+        response.setNotice(noticePage.getRecords());
+        response.setTotalPage((int)noticePage.getPages());
+        return response;
     }
 }
