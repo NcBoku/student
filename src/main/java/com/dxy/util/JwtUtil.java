@@ -1,24 +1,23 @@
 package com.dxy.util;
 
 
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
+
+import javax.crypto.SecretKey;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
-
-import javax.crypto.SecretKey;
-
 
 public class JwtUtil {
 
-    private static final long EXPIRE = 60 * 1000; //过期时间
+    private static final long EXPIRE = 60 * 1000 * 1000; //过期时间
 
     public static final SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);//密钥，动态生成的密钥
 
-    public static String generate(Map<String,Object> claims) {
+    public static String generate(Map<String, Object> claims) {
         Date nowDate = new Date();
         Date expireDate = new Date(System.currentTimeMillis() + EXPIRE);
         Map<String, Object> header = new HashMap<>(2);
@@ -32,19 +31,19 @@ public class JwtUtil {
                 .compact();
     }
 
-    public static boolean isSigned(String token){
-        return  Jwts.parser()
+    public static boolean isSigned(String token) {
+        return Jwts.parser()
                 .setSigningKey(key)
                 .isSigned(token);
     }
 
-    public static boolean verify(String token){
+    public static boolean verify(String token) {
         try {
             Jwts.parser()
                     .setSigningKey(key)
                     .parseClaimsJws(token);
             return true;
-        }catch (JwtException  e){
+        } catch (JwtException e) {
             System.out.println(e.getMessage());
             return false;
         }
@@ -76,13 +75,13 @@ public class JwtUtil {
         }
     }
 
-    public static String getPayloadByBase64(String token){
+    public static String getPayloadByBase64(String token) {
         String payload = null;
         if (isSigned(token)) {
             try {
                 byte[] payload_byte = Base64.getDecoder().decode(token.split("\\.")[1]);
                 payload = new String(payload_byte);
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
                 return null;
             }
