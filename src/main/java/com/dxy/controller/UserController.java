@@ -23,7 +23,6 @@ public class UserController {
 
     @GetMapping("info")
     public UserInfoResponse info(@RequestParam("token")String token){
-        System.out.println(token);
         return userService.info(token);
     }
 }

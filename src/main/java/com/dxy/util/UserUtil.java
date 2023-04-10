@@ -13,7 +13,7 @@ public class UserUtil {
         map.put(key,value);
     }
 
-    public static Object get(String key){
+    public static User get(String key){
         return map.get(key);
     }
 }

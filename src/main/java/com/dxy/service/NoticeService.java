@@ -6,5 +6,5 @@ import com.dxy.pojo.Notice;
 import com.dxy.response.NoticePageResponse;
 
 public interface NoticeService extends IService<Notice> {
-    NoticePageResponse getPage(Page<Notice> page);
+    NoticePageResponse getPage(Page<Notice> page,String token);
 }

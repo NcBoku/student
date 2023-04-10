@@ -39,7 +39,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             response.setCode(20000);
         }
         response.setType(type);
-        System.out.println();
 
         return response;
     }
@@ -49,7 +48,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         UserInfoResponse response = new UserInfoResponse();
         User user =(User) UserUtil.get(token);
         BeanUtils.copyProperties(user,response);
-        response.setRoles("admin");
+        if (user.getType()==0){
+            response.setRoles("admin");
+        }else if (user.getType()==1){
+            response.setRoles("teacher");
+        }else {
+            response.setRoles("student");
+        }
         response.setCode(20000);
         return response;
     }
