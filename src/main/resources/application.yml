@@ -8,9 +8,26 @@ spring:
     username: root
     password: indexwan123
     url: jdbc:mysql://101.43.195.41:3306/score?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+  web:
+    resources:
+      static-locations: file:${web.upload-path},classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 1000MB
+
 
 mybatis-plus:
   global-config:
     db-config:
       id-type: auto
   type-aliases-package: com.dxy.pojo
+
+web:
+  upload-path: C:/images
+
+thk:
+  imagesRealPath: C:/images/
+  imagesServerPath: /images
+
+
