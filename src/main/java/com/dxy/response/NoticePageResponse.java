@@ -7,6 +7,8 @@ import java.util.List;
 
 @Data
 public class NoticePageResponse {
+    private Integer code;
+
     private List<Notice> notice;
 
     private Integer totalPage;

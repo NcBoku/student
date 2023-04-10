@@ -23,8 +23,6 @@ public class Student {
 
     private String qq;
 
-    private String photo;
-
     private Integer clazzId;
 
     private Integer graderId;
