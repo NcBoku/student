@@ -1,9 +1,12 @@
 package com.dxy.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dxy.mapper.UserMapper;
 import com.dxy.pojo.User;
+import com.dxy.response.UpdateResponse;
 import com.dxy.response.UserInfoResponse;
 import com.dxy.response.UserLoginResponse;
 import com.dxy.service.UserService;
@@ -29,7 +32,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .eq("password", password)
                 .eq("type", type);
         User user = userMapper.selectOne(userQueryWrapper);
-        if (user != null ) {
+        if (user != null) {
             HashMap<String, Object> map = new HashMap<>();
             map.put("account", account);
             map.put("type", type);
@@ -46,16 +49,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public UserInfoResponse info(String token) {
         UserInfoResponse response = new UserInfoResponse();
-        User user =UserUtil.get(token);
-        BeanUtils.copyProperties(user,response);
-        if (user.getType()==0){
+        User user = UserUtil.get(token);
+        BeanUtils.copyProperties(user, response);
+        if (user.getType() == 0) {
             response.setRoles("admin");
-        }else if (user.getType()==1){
+        } else if (user.getType() == 1) {
             response.setRoles("teacher");
-        }else {
+        } else {
             response.setRoles("student");
         }
         response.setCode(20000);
         return response;
+    }
+
+    @Override
+    public UpdateResponse update(User user) {
+        userMapper.update(user, new LambdaUpdateWrapper<User>().eq(User::getId, user.getId()));
+        return null;
     }
 }
