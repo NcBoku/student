@@ -6,5 +6,19 @@ import lombok.Data;
 @Data
 public class StudentResponse {
     private Integer code;
-    private Student student;
+
+    private String number;
+
+    private String name;
+
+    private String sex;
+
+    private String phone;
+
+    private String qq;
+
+    private String clazz;
+
+    private String grade;
+
 }

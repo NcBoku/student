@@ -46,7 +46,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public UserInfoResponse info(String token) {
         UserInfoResponse response = new UserInfoResponse();
-        User user =(User) UserUtil.get(token);
+        User user =UserUtil.get(token);
         BeanUtils.copyProperties(user,response);
         if (user.getType()==0){
             response.setRoles("admin");

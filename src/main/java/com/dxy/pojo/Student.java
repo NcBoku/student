@@ -25,7 +25,7 @@ public class Student {
 
     private Integer clazzId;
 
-    private Integer graderId;
+    private Integer gradeId;
 
     private Integer userId;
 }

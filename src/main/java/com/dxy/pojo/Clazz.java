@@ -13,7 +13,7 @@ public class Clazz {
     @TableId(type = IdType.AUTO)
     private Integer id;
 
-    private Integer gradId;
+    private Integer gradeId;
 
     private String name;
 }
