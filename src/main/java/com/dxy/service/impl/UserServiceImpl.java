@@ -67,4 +67,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userMapper.update(user, new LambdaUpdateWrapper<User>().eq(User::getId, user.getId()));
         return null;
     }
+
+    @Override
+    public UpdateResponse logout(String token) {
+        UserUtil.clear(token);
+        UpdateResponse response = new UpdateResponse();
+        response.setCode(20000);
+        return response;
+    }
 }

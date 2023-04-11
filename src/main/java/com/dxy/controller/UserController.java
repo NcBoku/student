@@ -27,4 +27,9 @@ public class UserController {
     public UserInfoResponse info(@RequestParam("token")String token){
         return userService.info(token);
     }
+
+    @PostMapping("logout")
+    public UpdateResponse logout(@RequestHeader("X-Token")String token){
+        return userService.logout(token);
+    }
 }

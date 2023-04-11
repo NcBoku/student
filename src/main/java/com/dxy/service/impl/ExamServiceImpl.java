@@ -196,6 +196,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
 
     @Override
     public ExamScoreResponse score(ExamScoreRequest request, String token) {
+        User user = UserUtil.get(token);
         ExamScoreResponse response = new ExamScoreResponse();
         List<ExamCourse> examCourses = examCourseMapper.selectList(new LambdaQueryWrapper<ExamCourse>().eq(ExamCourse::getExamId, request.getExamId()));
         ArrayList<Integer> list = new ArrayList<>();
@@ -215,18 +216,23 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
 
         String data = "[";
 
-        List<Student> students = studentMapper.selectList(new LambdaQueryWrapper<Student>().eq(Student::getClazzId, request.getClazzId()));
+        List<Student> students = studentMapper
+                .selectList(new LambdaQueryWrapper<Student>()
+                        .eq(Student::getClazzId, user.getType() == 2
+                                ? studentMapper.selectOne(new LambdaQueryWrapper<Student>().eq(Student::getUserId, user.getId())).getClazzId()
+                                : request.getClazzId())
+                );
         for (int j = 0; j < students.size(); j++) {
             data += "{";
-            data += "number:'" + students.get(0).getNumber() + "',";
-            data += "name:'" + students.get(0).getName() + "',";
+            data += "number:'" + students.get(j).getNumber() + "',";
+            data += "name:'" + students.get(j).getName() + "',";
             for (int k = 0; k < courses.size(); k++) {
                 Score score = scoreMapper.selectOne(new LambdaQueryWrapper<Score>()
                         .eq(Score::getExamId, request.getExamId())
                         .eq(Score::getStudentId, students.get(j).getId())
                         .eq(Score::getCourseId, courses.get(k).getId())
                 );
-                data += "prop" + k + ":'" + score + "'";
+                data += "prop" + k + ":'" + (score == null ? "成绩未录入" : score.getScore()) + "'";
                 if (k != courses.size() - 1) {
                     data += ",";
                 }
