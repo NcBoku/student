@@ -60,7 +60,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
             ArrayList<Integer> examIds = new ArrayList<>();
             ArrayList<Integer> courseIds = new ArrayList<>();
             response.setCode(20000);
-            response.setTotal(0);
+            response.setTotalPage(0);
             Page<Exam> examPage = null;
             if (user.getType() == 2) {
                 Student student = studentMapper.selectOne(new LambdaQueryWrapper<Student>().eq(Student::getUserId, user.getId()));
@@ -99,7 +99,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                 examPage = examMapper.selectPage(page, new LambdaQueryWrapper<Exam>().orderByDesc(Exam::getTime));
             }
             response.setExams(new ArrayList<>());
-            response.setTotal((int) examPage.getPages());
+            response.setTotalPage((int) examPage.getPages());
             examPage.getRecords().forEach(
                     e -> {
                         ExamResponse examResponse = new ExamResponse();
@@ -116,13 +116,19 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                                 clazzIds.add(ee.getClazzId());
                             });
                             StringBuilder clazzStr = new StringBuilder("");
+                            StringBuilder cname = new StringBuilder("");
+                            examResponse.setGradeName("");
                             clazzMapper.selectList(new LambdaQueryWrapper<Clazz>().in(Clazz::getId, clazzIds)).forEach(
                                     ee -> {
                                         clazzStr.append("[" + ee.getName() + "] ");
+                                        if (examResponse.getGradeName().equals("")) {
+                                            Grade grade = gradeMapper.selectOne(new LambdaQueryWrapper<Grade>().eq(Grade::getId, ee.getGradeId()));
+                                            examResponse.setGradeName(grade.getName());
+                                        }
                                     }
                             );
                             examResponse.setClazzName(clazzStr.toString());
-                            examResponse.setGradeName("");
+
                         }
                         List<ExamCourse> examCourses = examCourseMapper.selectList(new LambdaQueryWrapper<ExamCourse>().eq(ExamCourse::getExamId, e.getId()));
                         ArrayList<Integer> examCourseIds = new ArrayList<>();

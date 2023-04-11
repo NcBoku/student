@@ -17,6 +17,6 @@ public class ExamPageResponse {
 
     private List<ExamResponse> exams;
 
-    private Integer total;
+    private Integer totalPage;
 }
 

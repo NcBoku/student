@@ -1,6 +1,7 @@
 package com.dxy.controller;
 
 import com.dxy.request.UserLoginRequest;
+import com.dxy.response.InsertResponse;
 import com.dxy.response.UserInfoResponse;
 import com.dxy.response.UserLoginResponse;
 import com.dxy.service.UserService;
@@ -25,4 +26,5 @@ public class UserController {
     public UserInfoResponse info(@RequestParam("token")String token){
         return userService.info(token);
     }
+
 }
