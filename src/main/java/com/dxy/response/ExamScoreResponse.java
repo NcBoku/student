@@ -10,5 +10,7 @@ import java.util.List;
 public class ExamScoreResponse {
     private Integer code;
 
-    private HashMap<String, HashMap<String, List<Score>>> table;
+    private String header;
+
+    private String data;
 }

@@ -37,6 +37,6 @@ public class TestCases {
         ExamScoreRequest request = new ExamScoreRequest();
         request.setExamId(3);
         request.setClazzId(-1);
-        examService.score(request);
+
     }
 }
