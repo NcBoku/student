@@ -20,5 +20,4 @@ public class StudentResponse {
     private String clazz;
 
     private String grade;
-
 }

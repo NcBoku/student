@@ -1,15 +1,19 @@
 package com.dxy.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dxy.mapper.ClazzMapper;
 import com.dxy.mapper.GradeMapper;
 import com.dxy.mapper.StudentMapper;
+import com.dxy.mapper.UserMapper;
 import com.dxy.pojo.Clazz;
 import com.dxy.pojo.Grade;
 import com.dxy.pojo.Student;
 import com.dxy.pojo.User;
+import com.dxy.request.StudentUpdateRequest;
 import com.dxy.response.StudentResponse;
+import com.dxy.response.UpdateResponse;
 import com.dxy.service.StudentService;
 import com.dxy.util.UserUtil;
 import org.springframework.beans.BeanUtils;
@@ -28,6 +32,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     @Autowired
     private ClazzMapper clazzMapper;
 
+
     @Override
     public StudentResponse info(String token) {
         User user = UserUtil.get(token);
@@ -38,12 +43,21 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
             LambdaQueryWrapper<Student> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(Student::getUserId, user.getId());
             Student student = studentMapper.selectOne(wrapper);
-            Grade grade = gradeMapper.selectOne(new LambdaQueryWrapper<Grade>().eq(Grade::getId,student.getGradeId()));
-            Clazz clazz = clazzMapper.selectOne(new LambdaQueryWrapper<Clazz>().eq(Clazz::getId,student.getClazzId()));
-            BeanUtils.copyProperties(student,response);
+            Grade grade = gradeMapper.selectOne(new LambdaQueryWrapper<Grade>().eq(Grade::getId, student.getGradeId()));
+            Clazz clazz = clazzMapper.selectOne(new LambdaQueryWrapper<Clazz>().eq(Clazz::getId, student.getClazzId()));
+            BeanUtils.copyProperties(student, response);
             response.setGrade(grade.getName());
             response.setClazz(clazz.getName());
         }
         return response;
+    }
+
+    @Override
+    public UpdateResponse update(StudentUpdateRequest request, String token) {
+        User user = UserUtil.get(token);
+        Student student = studentMapper.selectOne(new LambdaQueryWrapper<Student>().eq(Student::getUserId, user.getId()));
+        BeanUtils.copyProperties(request, student);
+        studentMapper.update(student, new LambdaQueryWrapper<Student>().eq(Student::getUserId, user.getId()));
+        return null;
     }
 }

@@ -6,8 +6,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dxy.mapper.*;
 import com.dxy.pojo.*;
 import com.dxy.request.ExamInsertRequest;
+import com.dxy.request.ExamScoreRequest;
 import com.dxy.response.ExamPageResponse;
 import com.dxy.response.ExamResponse;
+import com.dxy.response.ExamScoreResponse;
 import com.dxy.response.InsertResponse;
 import com.dxy.service.ExamService;
 import com.dxy.util.UserUtil;
@@ -49,6 +51,10 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
 
     @Autowired
     private CourseMapper courseMapper;
+
+    @Autowired
+    private ScoreMapper scoreMapper;
+
 
     @Override
     public ExamPageResponse list(Page<Exam> page, String token) {
@@ -187,6 +193,35 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                     }
             );
         }
+        return response;
+    }
+
+    @Override
+    public ExamScoreResponse score(ExamScoreRequest request, String token) {
+        List<Score> scoreList = scoreMapper.selectList(new LambdaQueryWrapper<Score>()
+                .eq(Score::getExamId, request.getExamId())
+                .orderByAsc(Score::getStudentId)
+        );
+        ExamScoreResponse response = new ExamScoreResponse();
+        HashMap<String, HashMap<String, List<Score>>> table = new HashMap<>();
+        HashMap<Integer, String> filter = new HashMap<>();
+        HashMap<Integer, String> filter1 = new HashMap<>();
+        scoreList.forEach(e -> {
+            if (!filter.containsKey(e.getCourseId())) {
+                Course course = courseMapper.selectOne(new LambdaQueryWrapper<Course>().eq(Course::getId, e.getCourseId()));
+                table.put(course.getName(), new HashMap<>());
+                filter.put(e.getCourseId(), course.getName());
+            }
+
+            if (!filter1.containsKey(e.getStudentId())) {
+                Student student = studentMapper.selectOne(new LambdaQueryWrapper<Student>().eq(Student::getId, e.getStudentId()));
+                table.get(filter.get(e.getCourseId())).put(student.getName(), new ArrayList<>());
+                filter1.put(e.getStudentId(), student.getName());
+            }
+            table.get(filter.get(e.getCourseId())).get(filter1.get(e.getStudentId())).add(e);
+        });
+        response.setCode(20000);
+        response.setTable(table);
         return response;
     }
 }
