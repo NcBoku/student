@@ -28,7 +28,7 @@ public class TestCases {
     @Test
     public void test10() {
         User user = new User();
-        user.setId(91);
+        user.setId(88);
         user.setType(1);
         UserUtil.set("test", user);
         Page<Exam> page = new Page<>();

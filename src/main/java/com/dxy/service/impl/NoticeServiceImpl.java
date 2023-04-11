@@ -62,7 +62,7 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
         User user = UserUtil.get(token);
         InsertResponse response = new InsertResponse();
         response.setCode(20001);
-        if (noticeMapper.insert(notice) == 1 && user != null && user.getType() == 0) {
+        if (user != null && user.getType() == 0 && noticeMapper.insert(notice) == 1) {
             response.setCode(20000);
         }
         return response;

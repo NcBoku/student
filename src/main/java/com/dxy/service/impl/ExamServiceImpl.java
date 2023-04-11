@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dxy.mapper.*;
 import com.dxy.pojo.*;
+import com.dxy.request.ExamInsertRequest;
 import com.dxy.response.ExamPageResponse;
 import com.dxy.response.ExamResponse;
+import com.dxy.response.InsertResponse;
 import com.dxy.service.ExamService;
 import com.dxy.util.UserUtil;
 import org.springframework.beans.BeanUtils;
@@ -80,6 +82,9 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                 teacherCourses.forEach(e -> {
                     courseIds.add(e.getCourseId());
                 });
+                if (courseIds.size() == 0) {
+                    return response;
+                }
                 List<ExamCourse> examCourses = examCourseMapper.selectList(new LambdaQueryWrapper<ExamCourse>().in(ExamCourse::getCourseId, courseIds));
                 examCourses.forEach(
                         e -> {
@@ -132,6 +137,47 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                         );
                         examResponse.setCourseName(courseStr.toString());
                         response.getExams().add(examResponse);
+                    }
+            );
+        }
+        return response;
+    }
+
+    @Override
+    public InsertResponse insert(ExamInsertRequest request, String token) {
+        User user = UserUtil.get(token);
+        InsertResponse response = new InsertResponse();
+        response.setCode(20001);
+        if (user != null && user.getType() == 0) {
+            Exam exam = new Exam();
+            exam.setName(request.getName());
+            exam.setRemark(request.getRemark());
+            exam.setTime(request.getTime());
+            exam.setType(request.getType());
+            examMapper.insert(exam);
+
+            if (request.getType() == 0) {
+                ExamGrade examGrade = new ExamGrade();
+                examGrade.setExamId(exam.getId());
+                examGrade.setGradeId(request.getGradeId());
+                examGradeMapper.insert(examGrade);
+
+            } else if (request.getType() == 1) {
+                request.getClazzIds().forEach(
+                        id -> {
+                            ExamClazz examClazz = new ExamClazz();
+                            examClazz.setExamId(exam.getId());
+                            examClazz.setClazzId(id);
+                            examClazzMapper.insert(examClazz);
+                        }
+                );
+            }
+            request.getCourseIds().forEach(
+                    id -> {
+                        ExamCourse examCourse = new ExamCourse();
+                        examCourse.setExamId(exam.getId());
+                        examCourse.setCourseId(id);
+                        examCourseMapper.insert(examCourse);
                     }
             );
         }
