@@ -20,6 +20,6 @@ public class ExamController {
 
     @RequestMapping("/list")
     public ExamPageResponse list(@RequestBody ExamGetRequest request, HttpServletRequest r) {
-        return examService.list(new Page<Exam>(request.getPage(), request.getSize()), r.getHeader("X-Token"));
+        return examService.list(new Page<>(request.getPage(), request.getSize()), r.getHeader("X-Token"));
     }
 }

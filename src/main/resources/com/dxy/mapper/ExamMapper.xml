@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dxy.mapper.ExamMapper">
+
+<!--    <select id="getStudentExams" resultType="com.dxy.response.ExamResponse">-->
+<!--        select * -->
+<!--        from exam_grade g join exam e-->
+<!--            on g.exam_id = e.id-->
+<!--            join exam_clazz c-->
+<!--            on e.id = c.id-->
+<!--            join grade gr-->
+<!--            on g.grade_id = gr.id-->
+<!--            join clazz cl-->
+<!--            on c.clazz_id = cl.id-->
+<!--        where g.grade_id in-->
+<!--        <foreach  collection="gids" open="(" close=")" item="gid" separator="," >-->
+<!--            #{gid}-->
+<!--        </foreach>-->
+<!--          and c.grade_id in-->
+<!--        <foreach  collection="cids" open="(" close=")" item="cid" separator="," >-->
+<!--            #{cid}-->
+<!--        </foreach>-->
+<!--        order by e.time desc-->
+<!--    </select>-->
+</mapper>

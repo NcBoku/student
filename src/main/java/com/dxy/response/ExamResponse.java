@@ -24,5 +24,5 @@ public class ExamResponse{
 
     private String clazzName;
 
-    private Integer courseId;
+    private String courseName;
 }

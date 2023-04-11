@@ -28,14 +28,25 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
     private TeacherMapper teacherMapper;
 
     @Autowired
+    private ExamClazzMapper examClazzMapper;
+
+    @Autowired
+    private ExamGradeMapper examGradeMapper;
+
+    @Autowired
+    private ExamCourseMapper examCourseMapper;
+
+    @Autowired
+    private TeacherCourseMapper teacherCourseMapper;
+
+    @Autowired
     private GradeMapper gradeMapper;
 
     @Autowired
     private ClazzMapper clazzMapper;
 
     @Autowired
-    private ClazzCourseTeacherMapper clazzCourseTeacherMapper;
-
+    private CourseMapper courseMapper;
 
     @Override
     public ExamPageResponse list(Page<Exam> page, String token) {
@@ -44,21 +55,85 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
         response.setCode(20001);
 
         if (user != null) {
+            ArrayList<Integer> examIds = new ArrayList<>();
+            ArrayList<Integer> courseIds = new ArrayList<>();
+            response.setCode(20000);
+            response.setTotal(0);
             Page<Exam> examPage = null;
             if (user.getType() == 2) {
                 Student student = studentMapper.selectOne(new LambdaQueryWrapper<Student>().eq(Student::getUserId, user.getId()));
-
+                List<ExamGrade> examGrades = examGradeMapper.selectList(new LambdaQueryWrapper<ExamGrade>().eq(ExamGrade::getGradeId, student.getGradeId()));
+                examGrades.forEach(e -> {
+                    examIds.add(e.getExamId());
+                });
+                List<ExamClazz> examClazz = examClazzMapper.selectList(new LambdaQueryWrapper<ExamClazz>().eq(ExamClazz::getClazzId, student.getClazzId()));
+                examClazz.forEach(e -> {
+                    examIds.add(e.getExamId());
+                });
+                if (examIds.size() == 0) {
+                    return response;
+                }
+                examPage = examMapper.selectPage(page, new LambdaQueryWrapper<Exam>().in(Exam::getId, examIds));
             } else if (user.getType() == 1) {
                 Teacher teacher = teacherMapper.selectOne(new LambdaQueryWrapper<Teacher>().eq(Teacher::getUserId, user.getId()));
-                List<ClazzCourseTeacher> clazzCourseTeachers = clazzCourseTeacherMapper.selectList(new LambdaQueryWrapper<ClazzCourseTeacher>()
-                        .eq(ClazzCourseTeacher::getTeacherId, teacher.getId()));
-
+                List<TeacherCourse> teacherCourses = teacherCourseMapper.selectList(new LambdaQueryWrapper<TeacherCourse>().eq(TeacherCourse::getTeacherId, teacher.getId()));
+                teacherCourses.forEach(e -> {
+                    courseIds.add(e.getCourseId());
+                });
+                List<ExamCourse> examCourses = examCourseMapper.selectList(new LambdaQueryWrapper<ExamCourse>().in(ExamCourse::getCourseId, courseIds));
+                examCourses.forEach(
+                        e -> {
+                            examIds.add(e.getExamId());
+                        }
+                );
+                if (examIds.size() == 0) {
+                    return response;
+                }
+                examPage = examMapper.selectPage(page, new LambdaQueryWrapper<Exam>().in(Exam::getId, examIds));
             } else {
                 examPage = examMapper.selectPage(page, new LambdaQueryWrapper<Exam>().orderByDesc(Exam::getTime));
             }
             response.setExams(new ArrayList<>());
-            response.setCode(20000);
-
+            response.setTotal((int) examPage.getPages());
+            examPage.getRecords().forEach(
+                    e -> {
+                        ExamResponse examResponse = new ExamResponse();
+                        BeanUtils.copyProperties(e, examResponse);
+                        if (e.getType() == 0) {
+                            ExamGrade examGrade = examGradeMapper.selectOne(new LambdaQueryWrapper<ExamGrade>().eq(ExamGrade::getExamId, e.getId()));
+                            Grade grade = gradeMapper.selectOne(new LambdaQueryWrapper<Grade>().eq(Grade::getId, examGrade.getGradeId()));
+                            examResponse.setGradeName(grade.getName());
+                            examResponse.setClazzName("");
+                        } else {
+                            List<ExamClazz> clazzList = examClazzMapper.selectList(new LambdaQueryWrapper<ExamClazz>().eq(ExamClazz::getExamId, e.getId()));
+                            ArrayList<Integer> clazzIds = new ArrayList<>();
+                            clazzList.forEach(ee -> {
+                                clazzIds.add(ee.getClazzId());
+                            });
+                            StringBuilder clazzStr = new StringBuilder("");
+                            clazzMapper.selectList(new LambdaQueryWrapper<Clazz>().in(Clazz::getId, clazzIds)).forEach(
+                                    ee -> {
+                                        clazzStr.append("[" + ee.getName() + "] ");
+                                    }
+                            );
+                            examResponse.setClazzName(clazzStr.toString());
+                            examResponse.setGradeName("");
+                        }
+                        List<ExamCourse> examCourses = examCourseMapper.selectList(new LambdaQueryWrapper<ExamCourse>().eq(ExamCourse::getExamId, e.getId()));
+                        ArrayList<Integer> examCourseIds = new ArrayList<>();
+                        examCourses.forEach(ee -> {
+                            examCourseIds.add(ee.getCourseId());
+                        });
+                        StringBuilder courseStr = new StringBuilder("");
+                        courseMapper.selectList(new LambdaQueryWrapper<Course>().in(Course::getId, examCourseIds)).forEach(
+                                ee -> {
+                                    courseStr.append("[" + ee.getName() + "]");
+                                }
+                        );
+                        examResponse.setCourseName(courseStr.toString());
+                        response.getExams().add(examResponse);
+                    }
+            );
         }
         return response;
     }

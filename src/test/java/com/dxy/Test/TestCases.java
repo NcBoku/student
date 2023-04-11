@@ -26,9 +26,10 @@ public class TestCases {
     private ExamService examService;
 
     @Test
-    public void test() {
+    public void test10() {
         User user = new User();
-        user.setId(88);
+        user.setId(91);
+        user.setType(1);
         UserUtil.set("test", user);
         Page<Exam> page = new Page<>();
         ExamPageResponse list = examService.list(page, "test");
