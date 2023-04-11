@@ -24,4 +24,6 @@ public class Teacher {
     private String qq;
 
     private String photo;
+
+    private Integer userId;
 }

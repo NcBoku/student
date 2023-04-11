@@ -6,20 +6,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.sql.Date;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Exam {
+public class ExamCourse {
     @TableId(type = IdType.AUTO)
     private Integer id;
 
-    private String name;
+    private Integer examId;
 
-    private Date time;
-
-    private String remark;
-
-    private Integer type;
+    private Integer courseId;
 }

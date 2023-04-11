@@ -1,7 +1,5 @@
-package com.dxy.pojo;
+package com.dxy.response;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,10 +7,9 @@ import lombok.NoArgsConstructor;
 import java.sql.Date;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class Exam {
-    @TableId(type = IdType.AUTO)
+@NoArgsConstructor
+public class ExamResponse{
     private Integer id;
 
     private String name;
@@ -22,4 +19,10 @@ public class Exam {
     private String remark;
 
     private Integer type;
+
+    private String gradeName;
+
+    private String clazzName;
+
+    private Integer courseId;
 }
