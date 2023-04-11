@@ -12,5 +12,5 @@ import com.dxy.response.InsertResponse;
 public interface ExamService extends IService<Exam> {
     ExamPageResponse list(Page<Exam> page,String token);
     InsertResponse insert(ExamInsertRequest request, String token);
-    ExamScoreResponse score(ExamScoreRequest request, String token);
+    ExamScoreResponse score(ExamScoreRequest request);
 }

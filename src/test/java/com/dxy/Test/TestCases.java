@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.dxy.mapper.StudentMapper;
 import com.dxy.pojo.Exam;
 import com.dxy.pojo.User;
+import com.dxy.request.ExamScoreRequest;
 import com.dxy.request.StudentUpdateRequest;
 import com.dxy.response.ExamPageResponse;
 import com.dxy.service.ClazzService;
@@ -33,16 +34,9 @@ public class TestCases {
 
     @Test
     public void test10() {
-        User user = new User();
-        user.setId(87);
-        user.setType(1);
-        UserUtil.set("test", user);
-        StudentUpdateRequest request = new StudentUpdateRequest();
-        request.setName("修改后的名称");
-        request.setSex("男");
-        request.setPhone("10077");
-        request.setQq("99001");
-        System.out.println("xxxx:" + studentService.update(request, "test"));
-
+        ExamScoreRequest request = new ExamScoreRequest();
+        request.setExamId(3);
+        request.setClazzId(-1);
+        examService.score(request);
     }
 }

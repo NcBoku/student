@@ -197,11 +197,21 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
     }
 
     @Override
-    public ExamScoreResponse score(ExamScoreRequest request, String token) {
-        List<Score> scoreList = scoreMapper.selectList(new LambdaQueryWrapper<Score>()
-                .eq(Score::getExamId, request.getExamId())
-                .orderByAsc(Score::getStudentId)
-        );
+    public ExamScoreResponse score(ExamScoreRequest request) {
+        List<Score> scoreList = null;
+        if (request.getClazzId() > 0) {
+            scoreList = scoreMapper.selectList(new LambdaQueryWrapper<Score>()
+                    .eq(Score::getExamId, request.getExamId())
+                    .eq(Score::getClazzId, request.getClazzId())
+                    .orderByAsc(Score::getStudentId)
+            );
+        } else {
+            scoreList = scoreMapper.selectList(new LambdaQueryWrapper<Score>()
+                    .eq(Score::getExamId, request.getExamId())
+                    .orderByAsc(Score::getStudentId)
+            );
+        }
+
         ExamScoreResponse response = new ExamScoreResponse();
         HashMap<String, HashMap<String, List<Score>>> table = new HashMap<>();
         HashMap<Integer, String> filter = new HashMap<>();
@@ -212,7 +222,6 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                 table.put(course.getName(), new HashMap<>());
                 filter.put(e.getCourseId(), course.getName());
             }
-
             if (!filter1.containsKey(e.getStudentId())) {
                 Student student = studentMapper.selectOne(new LambdaQueryWrapper<Student>().eq(Student::getId, e.getStudentId()));
                 table.get(filter.get(e.getCourseId())).put(student.getName(), new ArrayList<>());

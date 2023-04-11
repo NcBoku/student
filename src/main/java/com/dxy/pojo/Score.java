@@ -19,8 +19,6 @@ public class Score {
 
     private Integer studentId;
 
-    private Integer gradeId;
-
     private Integer courseId;
 
     private Integer score;
