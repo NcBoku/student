@@ -54,10 +54,12 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
     @Override
     public UpdateResponse update(StudentUpdateRequest request, String token) {
+        UpdateResponse response = new UpdateResponse();
+        response.setCode(20000);
         User user = UserUtil.get(token);
         Student student = studentMapper.selectOne(new LambdaQueryWrapper<Student>().eq(Student::getUserId, user.getId()));
         BeanUtils.copyProperties(request, student);
         studentMapper.update(student, new LambdaQueryWrapper<Student>().eq(Student::getUserId, user.getId()));
-        return null;
+        return response;
     }
 }
