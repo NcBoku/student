@@ -11,4 +11,5 @@ public interface UserService extends IService<User> {
     UserLoginResponse login(String account, String password, Integer type);
     UserInfoResponse info(String token);
     UpdateResponse update(User user);
+    UpdateResponse logout(String token);
 }

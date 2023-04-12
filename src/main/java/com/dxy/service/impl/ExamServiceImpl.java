@@ -227,8 +227,6 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                 table.get(filter.get(e.getCourseId())).put(student.getName(), new ArrayList<>());
                 filter1.put(e.getStudentId(), student.getName());
             }
-            System.out.println(filter1.get(e.getStudentId()));
-            System.out.println("xxxx:"+ table);
             table.get(filter.get(e.getCourseId())).get(filter1.get(e.getStudentId())).add(e);
         });
         response.setCode(20000);

@@ -34,6 +34,6 @@ public class ExamController {
 
     @PostMapping("/score")
     public ExamScoreResponse score(@RequestBody ExamScoreRequest request, @RequestHeader("X-Token") String token) {
-        return examService.score(request);
+        return examService.score(request,token);
     }
 }
