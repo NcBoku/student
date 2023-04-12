@@ -4,11 +4,15 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dxy.mapper.ExamGradeMapper;
 import com.dxy.mapper.GradeCourseMapper;
 import com.dxy.mapper.GradeMapper;
+import com.dxy.pojo.ExamGrade;
 import com.dxy.pojo.Grade;
 import com.dxy.pojo.GradeCourse;
+import com.dxy.pojo.User;
 import com.dxy.request.GradeUpdateRequest;
+import com.dxy.response.GradesResponse;
 import com.dxy.response.InsertResponse;
 import com.dxy.response.UpdateResponse;
 import com.dxy.service.GradeService;
@@ -18,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class GradeServiceImpl extends ServiceImpl<GradeMapper, Grade> implements GradeService {
@@ -27,6 +32,9 @@ public class GradeServiceImpl extends ServiceImpl<GradeMapper, Grade> implements
 
     @Autowired
     private GradeCourseMapper gradeCourseMapper;
+
+    @Autowired
+    private ExamGradeMapper examGradeMapper;
 
     @Override
     public InsertResponse insert(GradeUpdateRequest grade, String token) {
@@ -79,5 +87,15 @@ public class GradeServiceImpl extends ServiceImpl<GradeMapper, Grade> implements
             }
         }
         return response;
+    }
+
+    @Override
+    public GradesResponse getGradesByExamId(String id, String token) {
+        User user = UserUtil.get(token);
+        if (user.getType() == 0) {
+            ExamGrade examGrades = examGradeMapper.selectOne(new LambdaQueryWrapper<ExamGrade>().eq(ExamGrade::getExamId, id));
+
+        }
+        return null;
     }
 }

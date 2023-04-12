@@ -2,6 +2,7 @@ package com.dxy.controller;
 
 import com.dxy.pojo.Grade;
 import com.dxy.request.GradeUpdateRequest;
+import com.dxy.response.GradesResponse;
 import com.dxy.response.InsertResponse;
 import com.dxy.response.UpdateResponse;
 import com.dxy.service.GradeService;
@@ -27,5 +28,10 @@ public class GradeController {
     @PostMapping("/delete")
     public UpdateResponse delete(@RequestBody Grade grade, @RequestHeader("X-Token") String token) {
         return gradeService.delete(grade, token);
+    }
+
+    @PostMapping("/exam/{examId}")
+    public GradesResponse getGradesByExamId(@PathVariable("examId")String id,@RequestHeader("X-Token") String token){
+        return null;
     }
 }

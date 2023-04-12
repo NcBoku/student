@@ -3,16 +3,13 @@ package com.dxy.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.dxy.mapper.ClazzMapper;
-import com.dxy.mapper.ExamClazzMapper;
-import com.dxy.mapper.ExamGradeMapper;
-import com.dxy.mapper.ExamMapper;
-import com.dxy.pojo.Clazz;
-import com.dxy.pojo.Exam;
-import com.dxy.pojo.ExamClazz;
-import com.dxy.pojo.ExamGrade;
-import com.dxy.response.ClazzIdsResponse;
+import com.dxy.mapper.*;
+import com.dxy.pojo.*;
+import com.dxy.request.PageGetRequest;
+import com.dxy.response.*;
 import com.dxy.service.ClazzService;
+import com.dxy.util.UserUtil;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +31,9 @@ public class ClazzServiceImpl extends ServiceImpl<ClazzMapper, Clazz> implements
 
     @Autowired
     private ExamClazzMapper examClazzMapper;
+
+    @Autowired
+    private GradeMapper gradeMapper;
 
 
     @Override
@@ -67,8 +67,8 @@ public class ClazzServiceImpl extends ServiceImpl<ClazzMapper, Clazz> implements
                             clazzIds.add(ec.getClazzId());
                         }
                 );
-                clazzMapper.selectList(new LambdaQueryWrapper<Clazz>().in(Clazz::getId,clazzIds)).forEach(
-                        c->{
+                clazzMapper.selectList(new LambdaQueryWrapper<Clazz>().in(Clazz::getId, clazzIds)).forEach(
+                        c -> {
                             list.add(c);
                         }
                 );
@@ -77,6 +77,65 @@ public class ClazzServiceImpl extends ServiceImpl<ClazzMapper, Clazz> implements
         ClazzIdsResponse response = new ClazzIdsResponse();
         response.setCode(20000);
         response.setMap(map);
+        return response;
+    }
+
+    @Override
+    public InsertResponse insert(Clazz clazz, String token) {
+        User user = UserUtil.get(token);
+        InsertResponse response = new InsertResponse();
+        response.setCode(20001);
+        if (user.getType() == 0) {
+            if (clazzMapper.insert(clazz) == 1) {
+                response.setCode(20000);
+            }
+        }
+        return response;
+    }
+
+    @Override
+    public UpdateResponse update(Clazz clazz, String token) {
+        User user = UserUtil.get(token);
+        UpdateResponse response = new UpdateResponse();
+        response.setCode(20001);
+        if (user.getType() == 0) {
+            if (clazzMapper.update(clazz, new LambdaQueryWrapper<Clazz>().eq(Clazz::getId, clazz.getId())) == 1) {
+                response.setCode(20000);
+            }
+        }
+        return response;
+    }
+
+    @Override
+    public UpdateResponse del(Clazz clazz, String token) {
+        User user = UserUtil.get(token);
+        UpdateResponse response = new UpdateResponse();
+        response.setCode(20001);
+        if (user.getType() == 0) {
+            if (clazzMapper.delete(new LambdaQueryWrapper<Clazz>().eq(Clazz::getId, clazz.getId())) == 1) {
+                response.setCode(20000);
+            }
+        }
+        return response;
+    }
+
+    @Override
+    public ClazzPageResponse list(PageGetRequest request, String token) {
+        Page<Clazz> p = new Page(request.getPage(), request.getSize());
+        User user = UserUtil.get(token);
+        ClazzPageResponse response = new ClazzPageResponse();
+        response.setCode(20001);
+        if (user.getType() == 0) {
+            Page<Clazz> page = clazzMapper.selectPage(p, new LambdaQueryWrapper<Clazz>().orderByDesc(Clazz::getId));
+            response.setClazz(new ArrayList<>());
+            page.getRecords().forEach(e -> {
+                ClazzResponse r = new ClazzResponse();
+                BeanUtils.copyProperties(e, r);
+                r.setGradeName(gradeMapper.selectOne(new LambdaQueryWrapper<Grade>().eq(Grade::getId, e.getGradeId())).getName());
+                response.getClazz().add(r);
+            });
+            response.setTotalPage((int) page.getTotal());
+        }
         return response;
     }
 }
