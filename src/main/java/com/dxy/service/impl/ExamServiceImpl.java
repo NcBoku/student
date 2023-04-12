@@ -7,10 +7,7 @@ import com.dxy.mapper.*;
 import com.dxy.pojo.*;
 import com.dxy.request.ExamInsertRequest;
 import com.dxy.request.ExamScoreRequest;
-import com.dxy.response.ExamPageResponse;
-import com.dxy.response.ExamResponse;
-import com.dxy.response.ExamScoreResponse;
-import com.dxy.response.InsertResponse;
+import com.dxy.response.*;
 import com.dxy.service.ExamService;
 import com.dxy.util.UserUtil;
 import org.springframework.beans.BeanUtils;
@@ -161,6 +158,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
         InsertResponse response = new InsertResponse();
         response.setCode(20001);
         if (user != null && user.getType() == 0) {
+            response.setCode(20000);
             Exam exam = new Exam();
             exam.setName(request.getName());
             exam.setRemark(request.getRemark());
@@ -197,40 +195,60 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
     }
 
     @Override
-    public ExamScoreResponse score(ExamScoreRequest request) {
-        List<Score> scoreList = null;
-        if (request.getClazzId() > 0) {
-            scoreList = scoreMapper.selectList(new LambdaQueryWrapper<Score>()
-                    .eq(Score::getExamId, request.getExamId())
-                    .eq(Score::getClazzId, request.getClazzId())
-                    .orderByAsc(Score::getStudentId)
-            );
-        } else {
-            scoreList = scoreMapper.selectList(new LambdaQueryWrapper<Score>()
-                    .eq(Score::getExamId, request.getExamId())
-                    .orderByAsc(Score::getStudentId)
-            );
+    public ExamScoreResponse score(ExamScoreRequest request, String token) {
+        User user = UserUtil.get(token);
+        ExamScoreResponse response = new ExamScoreResponse();
+        List<ExamCourse> examCourses = examCourseMapper.selectList(new LambdaQueryWrapper<ExamCourse>().eq(ExamCourse::getExamId, request.getExamId()));
+        ArrayList<Integer> list = new ArrayList<>();
+        examCourses.forEach(e -> {
+            list.add(e.getCourseId());
+        });
+        List<Course> courses = courseMapper.selectList(new LambdaQueryWrapper<Course>().in(Course::getId, list));
+        ArrayList<String> tableLabels = new ArrayList<>();
+        String headerString = "[ {label:'学号',prop:'number'},{label:'姓名',prop:'name'},";
+        for (int i = 0; i < courses.size(); i++) {
+            tableLabels.add(courses.get(i).getName());
+            headerString += "{label:" + "'" + courses.get(i).getName() + "',prop:'prop" + i + "'}";
+            if (i != courses.size() - 1) {
+                headerString += ",";
+            }
         }
 
-        ExamScoreResponse response = new ExamScoreResponse();
-        HashMap<String, HashMap<String, List<Score>>> table = new HashMap<>();
-        HashMap<Integer, String> filter = new HashMap<>();
-        HashMap<Integer, String> filter1 = new HashMap<>();
-        scoreList.forEach(e -> {
-            if (!filter.containsKey(e.getCourseId())) {
-                Course course = courseMapper.selectOne(new LambdaQueryWrapper<Course>().eq(Course::getId, e.getCourseId()));
-                table.put(course.getName(), new HashMap<>());
-                filter.put(e.getCourseId(), course.getName());
+        String data = "[";
+
+        List<Student> students = studentMapper
+                .selectList(new LambdaQueryWrapper<Student>()
+                        .eq(Student::getClazzId, user.getType() == 2
+                                ? studentMapper.selectOne(new LambdaQueryWrapper<Student>().eq(Student::getUserId, user.getId())).getClazzId()
+                                : request.getClazzId())
+                );
+        for (int j = 0; j < students.size(); j++) {
+            data += "{";
+            data += "number:'" + students.get(j).getNumber() + "',";
+            data += "name:'" + students.get(j).getName() + "',";
+            for (int k = 0; k < courses.size(); k++) {
+                Score score = scoreMapper.selectOne(new LambdaQueryWrapper<Score>()
+                        .eq(Score::getExamId, request.getExamId())
+                        .eq(Score::getStudentId, students.get(j).getId())
+                        .eq(Score::getCourseId, courses.get(k).getId())
+                );
+                data += "prop" + k + ":'" + (score == null ? "成绩未录入" : score.getScore()) + "'";
+                if (k != courses.size() - 1) {
+                    data += ",";
+                }
             }
-            if (!filter1.containsKey(e.getStudentId())) {
-                Student student = studentMapper.selectOne(new LambdaQueryWrapper<Student>().eq(Student::getId, e.getStudentId()));
-                table.get(filter.get(e.getCourseId())).put(student.getName(), new ArrayList<>());
-                filter1.put(e.getStudentId(), student.getName());
+            data += "}";
+            if (j != students.size() - 1) {
+                data += ",";
             }
-            table.get(filter.get(e.getCourseId())).get(filter1.get(e.getStudentId())).add(e);
-        });
+        }
+
+        data += "]";
+
+        headerString += "]";
         response.setCode(20000);
-        response.setTable(table);
+        response.setHeader(headerString);
+        response.setData(data);
         return response;
     }
 }

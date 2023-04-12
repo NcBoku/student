@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class NoticeGetRequest {
     private Integer page;
     private Integer size;
+    private String keyword;
 }

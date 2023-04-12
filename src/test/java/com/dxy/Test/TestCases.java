@@ -17,6 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.util.Assert;
 
+import javax.sound.midi.Soundbank;
+import java.util.Date;
+
 @SpringBootTest
 public class TestCases {
 
@@ -34,9 +37,7 @@ public class TestCases {
 
     @Test
     public void test10() {
-        ExamScoreRequest request = new ExamScoreRequest();
-        request.setExamId(3);
-        request.setClazzId(-1);
+
 
     }
 }
