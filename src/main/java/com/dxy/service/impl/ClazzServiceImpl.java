@@ -38,11 +38,11 @@ public class ClazzServiceImpl extends ServiceImpl<ClazzMapper, Clazz> implements
 
     @Override
     public ClazzIdsResponse getClazzByGradeId(List<Integer> ids) {
-        HashMap<Integer, List<Integer>> map = new HashMap<>();
+        HashMap<Integer, List<Clazz>> map = new HashMap<>();
         List<Exam> exams = examMapper.selectList(new LambdaQueryWrapper<Exam>().in(Exam::getId, ids));
 
         exams.forEach(e -> {
-            ArrayList<Integer> list = new ArrayList<>();
+            ArrayList<Clazz> list = new ArrayList<>();
             map.put(e.getId(), list);
             if (e.getType() == 0) {
                 ExamGrade examGrade = examGradeMapper.selectOne(new LambdaQueryWrapper<ExamGrade>().eq(ExamGrade::getExamId, e.getId()));
@@ -52,18 +52,24 @@ public class ClazzServiceImpl extends ServiceImpl<ClazzMapper, Clazz> implements
 
                 clazzMapper.selectList(new LambdaQueryWrapper<Clazz>().eq(Clazz::getGradeId, examGrade.getGradeId())).forEach(
                         c -> {
-                            list.add(c.getId());
+                            list.add(c);
                         }
                 );
                 map.put(e.getId(), list);
             } else if (e.getType() == 1) {
+                ArrayList<Integer> clazzIds = new ArrayList<>();
                 List<ExamClazz> examClazz = examClazzMapper.selectList(new LambdaQueryWrapper<ExamClazz>().eq(ExamClazz::getExamId, e.getId()));
                 if (examClazz.size() == 0) {
                     return;
                 }
                 examClazz.forEach(
                         ec -> {
-                            list.add(ec.getClazzId());
+                            clazzIds.add(ec.getClazzId());
+                        }
+                );
+                clazzMapper.selectList(new LambdaQueryWrapper<Clazz>().in(Clazz::getId,clazzIds)).forEach(
+                        c->{
+                            list.add(c);
                         }
                 );
             }
