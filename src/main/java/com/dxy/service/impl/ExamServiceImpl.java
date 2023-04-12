@@ -85,6 +85,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                 teacherCourses.forEach(e -> {
                     courseIds.add(e.getCourseId());
                 });
+                response.setExams(new ArrayList<>());
                 if (courseIds.size() == 0) {
                     return response;
                 }
@@ -101,14 +102,20 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
             } else {
                 examPage = examMapper.selectPage(page, new LambdaQueryWrapper<Exam>().orderByDesc(Exam::getTime));
             }
+
+
             response.setExams(new ArrayList<>());
             response.setTotalPage((int) examPage.getPages());
             examPage.getRecords().forEach(
                     e -> {
                         ExamResponse examResponse = new ExamResponse();
+                        response.getExams().add(examResponse);
                         BeanUtils.copyProperties(e, examResponse);
                         if (e.getType() == 0) {
                             ExamGrade examGrade = examGradeMapper.selectOne(new LambdaQueryWrapper<ExamGrade>().eq(ExamGrade::getExamId, e.getId()));
+                            if (examGrade == null) {
+                                return;
+                            }
                             Grade grade = gradeMapper.selectOne(new LambdaQueryWrapper<Grade>().eq(Grade::getId, examGrade.getGradeId()));
                             examResponse.setGradeName(grade.getName());
                             examResponse.setClazzName("");
@@ -119,8 +126,10 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                                 clazzIds.add(ee.getClazzId());
                             });
                             StringBuilder clazzStr = new StringBuilder("");
-                            StringBuilder cname = new StringBuilder("");
                             examResponse.setGradeName("");
+                            if (clazzIds.size() == 0) {
+                                return;
+                            }
                             clazzMapper.selectList(new LambdaQueryWrapper<Clazz>().in(Clazz::getId, clazzIds)).forEach(
                                     ee -> {
                                         clazzStr.append("[" + ee.getName() + "] ");
@@ -145,7 +154,6 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                                 }
                         );
                         examResponse.setCourseName(courseStr.toString());
-                        response.getExams().add(examResponse);
                     }
             );
         }
