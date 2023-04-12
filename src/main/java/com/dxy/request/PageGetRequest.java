@@ -6,5 +6,5 @@ import lombok.Data;
 public class PageGetRequest {
     private Integer page;
     private Integer size;
-
+    private String keyword;
 }

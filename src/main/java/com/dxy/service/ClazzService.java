@@ -20,6 +20,6 @@ public interface ClazzService extends IService<Clazz> {
     ClazzIdsResponse getClazzByGradeId(List<Integer> ids);
     InsertResponse insert(@RequestBody Clazz clazz, @RequestHeader("X-Token") String token);
     UpdateResponse update(@RequestBody Clazz clazz, @RequestHeader("X-Token") String token);
-    UpdateResponse del(@RequestBody Clazz clazz, @RequestHeader("X-Token") String token);
+    UpdateResponse del(@RequestBody List<Clazz> clazz, @RequestHeader("X-Token") String token);
     ClazzPageResponse list(@RequestBody PageGetRequest request, @RequestHeader("X-Token") String token);
 }

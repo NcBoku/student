@@ -36,7 +36,7 @@ public class ClazzController {
     }
 
     @PostMapping("/del")
-    public UpdateResponse del(@RequestBody Clazz clazz, @RequestHeader("X-Token") String token) {
+    public UpdateResponse del(@RequestBody List<Clazz> clazz, @RequestHeader("X-Token") String token) {
         return clazzService.del(clazz, token);
     }
 

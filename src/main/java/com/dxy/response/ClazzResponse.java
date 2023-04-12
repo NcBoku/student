@@ -8,5 +8,7 @@ public class ClazzResponse {
 
     private String gradeName;
 
+    private Integer gradeId;
+
     private String name;
 }

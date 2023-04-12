@@ -107,12 +107,16 @@ public class ClazzServiceImpl extends ServiceImpl<ClazzMapper, Clazz> implements
     }
 
     @Override
-    public UpdateResponse del(Clazz clazz, String token) {
+    public UpdateResponse del(List<Clazz> clazz, String token) {
         User user = UserUtil.get(token);
         UpdateResponse response = new UpdateResponse();
         response.setCode(20001);
         if (user.getType() == 0) {
-            if (clazzMapper.delete(new LambdaQueryWrapper<Clazz>().eq(Clazz::getId, clazz.getId())) == 1) {
+            ArrayList<Integer> ids = new ArrayList<>();
+            clazz.forEach(e -> {
+                ids.add(e.getId());
+            });
+            if (clazzMapper.delete(new LambdaQueryWrapper<Clazz>().in(Clazz::getId, ids)) == ids.size()) {
                 response.setCode(20000);
             }
         }
@@ -126,7 +130,13 @@ public class ClazzServiceImpl extends ServiceImpl<ClazzMapper, Clazz> implements
         ClazzPageResponse response = new ClazzPageResponse();
         response.setCode(20001);
         if (user.getType() == 0) {
-            Page<Clazz> page = clazzMapper.selectPage(p, new LambdaQueryWrapper<Clazz>().orderByDesc(Clazz::getId));
+            LambdaQueryWrapper<Clazz> wrapper = new LambdaQueryWrapper<>();
+            if (request.getKeyword() != null && !request.getKeyword().equals("")) {
+                wrapper.and(
+                        o -> o.like(Clazz::getName, request.getKeyword())
+                );
+            }
+            Page<Clazz> page = clazzMapper.selectPage(p, wrapper.orderByDesc(Clazz::getId));
             response.setClazz(new ArrayList<>());
             page.getRecords().forEach(e -> {
                 ClazzResponse r = new ClazzResponse();
@@ -135,6 +145,7 @@ public class ClazzServiceImpl extends ServiceImpl<ClazzMapper, Clazz> implements
                 response.getClazz().add(r);
             });
             response.setTotalPage((int) page.getTotal());
+            response.setCode(20000);
         }
         return response;
     }
