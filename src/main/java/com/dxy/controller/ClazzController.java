@@ -1,20 +1,23 @@
 package com.dxy.controller;
 
+import com.dxy.response.ClazzIdsResponse;
 import com.dxy.service.ClazzService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.List;
 
 @RestController
 @RequestMapping("/clazz")
 @CrossOrigin
 public class ClazzController {
     @Autowired
-    private ClazzService ClazzService;
+    private ClazzService clazzService;
 
-    public void insert() {
-
+    @PostMapping("/clazzIds")
+    private ClazzIdsResponse getClazzByGradeId(@RequestBody List<Integer> examIds){
+        return clazzService.getClazzByGradeId(examIds);
     }
 
 }

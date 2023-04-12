@@ -105,7 +105,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
 
 
             response.setExams(new ArrayList<>());
-            response.setTotalPage((int) examPage.getPages());
+            response.setTotalPage((int) examPage.getTotal());
             examPage.getRecords().forEach(
                     e -> {
                         ExamResponse examResponse = new ExamResponse();

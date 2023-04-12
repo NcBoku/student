@@ -53,7 +53,7 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
         NoticePageResponse response = new NoticePageResponse();
         Page<Notice> noticePage = noticeMapper.selectPage(page, wrapper);
         response.setNotice(noticePage.getRecords());
-        response.setTotalPage((int) noticePage.getPages());
+        response.setTotalPage((int) noticePage.getTotal());
         response.setCode(20000);
         return response;
     }
