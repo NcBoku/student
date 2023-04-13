@@ -4,6 +4,7 @@ import com.dxy.pojo.Student;
 import com.dxy.pojo.Teacher;
 import com.dxy.request.PageGetRequest;
 import com.dxy.request.StudentUpdateRequest;
+import com.dxy.request.TeacherUpdateRequest;
 import com.dxy.response.InsertResponse;
 import com.dxy.response.TeacherPageResponse;
 import com.dxy.response.UpdateResponse;
@@ -27,8 +28,8 @@ public class TeacherController {
     }
 
     @PostMapping("/insert")
-    public InsertResponse insert(@RequestBody Teacher teacher, @RequestHeader("X-Token") String token){
-        return teacherService.insert(teacher,token);
+    public InsertResponse insert(@RequestBody TeacherUpdateRequest request, @RequestHeader("X-Token") String token){
+        return teacherService.insert(request,token);
     }
 
     @PostMapping("/update")
@@ -42,7 +43,7 @@ public class TeacherController {
     }
 
     @PostMapping("/updateAll")
-    public UpdateResponse updateAll(@RequestBody Teacher teacher,@RequestHeader("X-Token") String token){
-        return teacherService.updateAll(teacher,token);
+    public UpdateResponse updateAll(@RequestBody TeacherUpdateRequest request, @RequestHeader("X-Token") String token){
+        return teacherService.updateAll(request,token);
     }
 }

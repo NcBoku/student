@@ -8,10 +8,7 @@ import com.dxy.mapper.ClazzMapper;
 import com.dxy.mapper.GradeMapper;
 import com.dxy.mapper.StudentMapper;
 import com.dxy.mapper.UserMapper;
-import com.dxy.pojo.Clazz;
-import com.dxy.pojo.Grade;
-import com.dxy.pojo.Student;
-import com.dxy.pojo.User;
+import com.dxy.pojo.*;
 import com.dxy.request.PageGetRequest;
 import com.dxy.request.StudentUpdateRequest;
 import com.dxy.response.StudentPageResponse;
@@ -76,7 +73,29 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
         response.setStudents(new ArrayList<>());
         response.setCode(20001);
         if (UserUtil.get(token).getType() == 0) {
-            Page<Student> page = studentMapper.selectPage(studentPage, new LambdaQueryWrapper<Student>().orderByDesc(Student::getId));
+            LambdaQueryWrapper<Student> wrapper = new LambdaQueryWrapper<>();
+            if (request.getKeyword()!=null&&!request.getKeyword().equals("")){
+                List<Clazz> clazz = clazzMapper.selectList(new LambdaQueryWrapper<Clazz>().like(Clazz::getName, request.getKeyword()));
+                ArrayList<Integer> cids = new ArrayList<>();
+                cids.add(-1);
+                if (clazz.size()!=0){
+                    clazz.forEach(e->{
+                        cids.add(e.getId());
+                    });
+                }
+                wrapper.like(Student::getId,request.getKeyword())
+                        .or()
+                        .like(Student::getNumber,request.getKeyword())
+                        .or()
+                        .like(Student::getSex,request.getKeyword())
+                        .or()
+                        .like(Student::getName,request.getKeyword())
+                        .or()
+                        .like(Student::getQq,request.getKeyword())
+                        .or()
+                        .in(Student::getClazzId,cids);
+            }
+            Page<Student> page = studentMapper.selectPage(studentPage, wrapper.orderByDesc(Student::getId));
             response.setCode(20000);
             response.setTotal((int) page.getTotal());
             page.getRecords().forEach(

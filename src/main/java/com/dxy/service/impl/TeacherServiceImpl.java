@@ -9,6 +9,7 @@ import com.dxy.mapper.TeacherMapper;
 import com.dxy.pojo.*;
 import com.dxy.request.PageGetRequest;
 import com.dxy.request.StudentUpdateRequest;
+import com.dxy.request.TeacherUpdateRequest;
 import com.dxy.response.*;
 import com.dxy.service.TeacherService;
 import com.dxy.util.UserUtil;
@@ -49,7 +50,20 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
         response.setTeachers(new ArrayList<>());
         response.setCode(20001);
         if (UserUtil.get(token).getType() == 0) {
-            Page<Teacher> page = teacherMapper.selectPage(teacherPage, new LambdaQueryWrapper<Teacher>().orderByDesc(Teacher::getId));
+            LambdaQueryWrapper<Teacher> wrapper = new LambdaQueryWrapper<>();
+            if (request.getKeyword() != null && !request.getKeyword().equals("")) {
+                wrapper.like(Teacher::getId,request.getKeyword())
+                        .or()
+                        .like(Teacher::getNumber,request.getKeyword())
+                        .or()
+                        .like(Teacher::getSex,request.getKeyword())
+                        .or()
+                        .like(Teacher::getName,request.getKeyword())
+                        .or()
+                        .like(Teacher::getQq,request.getKeyword());
+
+            }
+            Page<Teacher> page = teacherMapper.selectPage(teacherPage, wrapper.orderByDesc(Teacher::getId));
             response.setCode(20000);
             response.setTotal((int) page.getTotal());
             page.getRecords().forEach(
@@ -60,7 +74,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
                         List<TeacherCourse> teacherCourses = teacherCourseMapper.selectList(new LambdaQueryWrapper<TeacherCourse>().eq(TeacherCourse::getTeacherId, e.getId()));
                         if (teacherCourses.size() != 0) {
                             ArrayList<Integer> ids = new ArrayList<>();
-                            teacherCourses.forEach(tc->{
+                            teacherCourses.forEach(tc -> {
                                 ids.add(tc.getCourseId());
                             });
                             List<Course> courses = courseMapper.selectList(new LambdaQueryWrapper<Course>().in(Course::getId, ids));
@@ -74,11 +88,20 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
     }
 
     @Override
-    public InsertResponse insert(Teacher teacher, String token) {
+    public InsertResponse insert(TeacherUpdateRequest request, String token) {
         InsertResponse response = new InsertResponse();
         response.setCode(20001);
         if (UserUtil.get(token).getType() == 0) {
+            Teacher teacher = new Teacher();
+            BeanUtils.copyProperties(request, teacher);
             if (teacherMapper.insert(teacher) == 1) {
+
+                request.getCourseIds().forEach(e -> {
+                    TeacherCourse teacherCourse = new TeacherCourse();
+                    teacherCourse.setTeacherId(teacher.getId());
+                    teacherCourse.setCourseId(e);
+                    teacherCourseMapper.insert(teacherCourse);
+                });
                 response.setCode(20000);
             }
         }
@@ -102,11 +125,21 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
     }
 
     @Override
-    public UpdateResponse updateAll(Teacher teacher, String token) {
+    public UpdateResponse updateAll(TeacherUpdateRequest request, String token) {
         UpdateResponse response = new UpdateResponse();
         response.setCode(20001);
         if (UserUtil.get(token).getType() == 0) {
+            Teacher teacher = new Teacher();
+            BeanUtils.copyProperties(request, teacher);
             if (teacherMapper.update(teacher, new LambdaQueryWrapper<Teacher>().in(Teacher::getId, teacher.getId())) == 1) {
+                teacherCourseMapper.delete(new LambdaQueryWrapper<TeacherCourse>().eq(TeacherCourse::getTeacherId, teacher.getId()));
+                request.getCourseIds().forEach(e -> {
+                    TeacherCourse teacherCourse = new TeacherCourse();
+                    teacherCourse.setTeacherId(request.getId());
+                    teacherCourse.setCourseId(e);
+                    teacherCourseMapper.insert(teacherCourse);
+                });
+
                 response.setCode(20000);
             }
         }
