@@ -45,4 +45,9 @@ public class ClazzController {
         return clazzService.list(request,token);
     }
 
+    @PostMapping("/grade/{id}")
+    public ClazzPageResponse getClazzByGradeId(@PathVariable("id") Integer id,@RequestHeader("X-Token") String token){
+        return clazzService.getClazzByGradeId(id,token);
+    }
+
 }

@@ -9,6 +9,7 @@ import com.dxy.response.ClazzPageResponse;
 import com.dxy.response.InsertResponse;
 import com.dxy.response.UpdateResponse;
 import org.apache.ibatis.annotations.Mapper;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
@@ -22,4 +23,5 @@ public interface ClazzService extends IService<Clazz> {
     UpdateResponse update(@RequestBody Clazz clazz, @RequestHeader("X-Token") String token);
     UpdateResponse del(@RequestBody List<Clazz> clazz, @RequestHeader("X-Token") String token);
     ClazzPageResponse list(@RequestBody PageGetRequest request, @RequestHeader("X-Token") String token);
+    ClazzPageResponse getClazzByGradeId(@PathVariable("id") Integer id, @RequestHeader("X-Token") String token);
 }

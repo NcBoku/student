@@ -112,8 +112,8 @@ public class GradeServiceImpl extends ServiceImpl<GradeMapper, Grade> implements
             if (examGrades != null) {
                 grade = gradeMapper.selectOne(new LambdaQueryWrapper<Grade>().eq(Grade::getId, examGrades.getGradeId()));
             } else {
-                ExamClazz examClazz = examClazzMapper.selectOne(new LambdaQueryWrapper<ExamClazz>().eq(ExamClazz::getExamId, id));
-                Clazz clazz = clazzMapper.selectOne(new LambdaQueryWrapper<Clazz>().eq(Clazz::getId, examClazz));
+                ExamClazz examClazz = examClazzMapper.selectList(new LambdaQueryWrapper<ExamClazz>().eq(ExamClazz::getExamId, id)).get(0);
+                Clazz clazz = clazzMapper.selectOne(new LambdaQueryWrapper<Clazz>().eq(Clazz::getId, examClazz.getClazzId()));
                 grade = gradeMapper.selectOne(new LambdaQueryWrapper<Grade>().eq(Grade::getId, clazz.getGradeId()));
             }
 

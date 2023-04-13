@@ -12,6 +12,8 @@ import com.dxy.util.UserUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -133,7 +135,7 @@ public class ClazzServiceImpl extends ServiceImpl<ClazzMapper, Clazz> implements
             LambdaQueryWrapper<Clazz> wrapper = new LambdaQueryWrapper<>();
             if (request.getKeyword() != null && !request.getKeyword().equals("")) {
                 wrapper.and(
-                        o -> o.like(Clazz::getName, request.getKeyword()).or().like(Clazz::getId,request.getKeyword())
+                        o -> o.like(Clazz::getName, request.getKeyword()).or().like(Clazz::getId, request.getKeyword())
                 );
             }
             Page<Clazz> page = clazzMapper.selectPage(p, wrapper.orderByDesc(Clazz::getId));
@@ -146,6 +148,22 @@ public class ClazzServiceImpl extends ServiceImpl<ClazzMapper, Clazz> implements
             });
             response.setTotalPage((int) page.getTotal());
             response.setCode(20000);
+        }
+        return response;
+    }
+
+    public ClazzPageResponse getClazzByGradeId(@PathVariable("id") Integer id, @RequestHeader("X-Token") String token) {
+        ClazzPageResponse response = new ClazzPageResponse();
+        response.setCode(20001);
+        response.setClazz(new ArrayList<>());
+        if (UserUtil.get(token).getType() == 0) {
+            List<Clazz> clazz = clazzMapper.selectList(new LambdaQueryWrapper<Clazz>().eq(Clazz::getGradeId, id));
+            response.setCode(20000);
+            clazz.forEach(e->{
+                ClazzResponse clazzResponse = new ClazzResponse();
+                BeanUtils.copyProperties(e,clazzResponse);
+                response.getClazz().add(clazzResponse);
+            });
         }
         return response;
     }
