@@ -5,10 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.dxy.mapper.CourseMapper;
-import com.dxy.mapper.ExamGradeMapper;
-import com.dxy.mapper.GradeCourseMapper;
-import com.dxy.mapper.GradeMapper;
+import com.dxy.mapper.*;
 import com.dxy.pojo.*;
 import com.dxy.request.GradeUpdateRequest;
 import com.dxy.request.PageGetRequest;
@@ -40,6 +37,12 @@ public class GradeServiceImpl extends ServiceImpl<GradeMapper, Grade> implements
 
     @Autowired
     private CourseMapper courseMapper;
+
+    @Autowired
+    private ExamClazzMapper examClazzMapper;
+
+    @Autowired
+    private ClazzMapper clazzMapper;
 
     @Override
     public InsertResponse insert(GradeUpdateRequest grade, String token) {
@@ -105,11 +108,18 @@ public class GradeServiceImpl extends ServiceImpl<GradeMapper, Grade> implements
         response.setCode(20001);
         if (user.getType() == 0) {
             ExamGrade examGrades = examGradeMapper.selectOne(new LambdaQueryWrapper<ExamGrade>().eq(ExamGrade::getExamId, id));
-            Grade grade = gradeMapper.selectOne(new LambdaQueryWrapper<Grade>().eq(Grade::getId, examGrades.getGradeId()));
+            Grade grade = null;
+            if (examGrades != null) {
+                grade = gradeMapper.selectOne(new LambdaQueryWrapper<Grade>().eq(Grade::getId, examGrades.getGradeId()));
+            } else {
+                ExamClazz examClazz = examClazzMapper.selectOne(new LambdaQueryWrapper<ExamClazz>().eq(ExamClazz::getExamId, id));
+                Clazz clazz = clazzMapper.selectOne(new LambdaQueryWrapper<Clazz>().eq(Clazz::getId, examClazz));
+                grade = gradeMapper.selectOne(new LambdaQueryWrapper<Grade>().eq(Grade::getId, clazz.getGradeId()));
+            }
+
             response.setCode(20000);
-            response.setGrades(new ArrayList<Grade>(){{
-                add(grade);
-            }});
+            response.setGrades(new ArrayList<>());
+            response.getGrades().add(grade);
         }
         return response;
     }
@@ -125,7 +135,7 @@ public class GradeServiceImpl extends ServiceImpl<GradeMapper, Grade> implements
             if (request.getKeyword() != null && !request.getKeyword().equals("")) {
                 wrapper.like(Grade::getName, request.getKeyword())
                         .or()
-                        .like(Grade::getId,request.getKeyword());
+                        .like(Grade::getId, request.getKeyword());
             }
             Page<Grade> page = gradeMapper.selectPage(p, wrapper.orderByDesc(Grade::getId));
             response.setCode(20000);
