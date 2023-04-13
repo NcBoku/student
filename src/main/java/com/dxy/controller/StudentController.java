@@ -45,4 +45,9 @@ public class StudentController {
     public UpdateResponse delete(@RequestBody List<Student> students,@RequestHeader("X-Token") String token){
         return studentService.delete(students,token);
     }
+
+    @PostMapping("/updateAll")
+    public UpdateResponse updateAll(@RequestBody Student student,@RequestHeader("X-Token") String token){
+        return studentService.updateAll(student,token);
+    }
 }

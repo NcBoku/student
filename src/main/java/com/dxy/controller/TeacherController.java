@@ -31,7 +31,6 @@ public class TeacherController {
         return teacherService.insert(teacher,token);
     }
 
-
     @PostMapping("/update")
     public UpdateResponse update(@RequestBody StudentUpdateRequest request, @RequestHeader("X-Token") String token){
         return teacherService.update(request,token);
@@ -40,5 +39,10 @@ public class TeacherController {
     @PostMapping("/delete")
     public UpdateResponse delete(@RequestBody List<Teacher> teacher,@RequestHeader("X-Token") String token){
         return teacherService.delete(teacher,token);
+    }
+
+    @PostMapping("/updateAll")
+    public UpdateResponse updateAll(@RequestBody Teacher teacher,@RequestHeader("X-Token") String token){
+        return teacherService.updateAll(teacher,token);
     }
 }

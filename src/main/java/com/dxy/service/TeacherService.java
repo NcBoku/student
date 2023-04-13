@@ -7,6 +7,8 @@ import com.dxy.request.StudentUpdateRequest;
 import com.dxy.response.InsertResponse;
 import com.dxy.response.TeacherPageResponse;
 import com.dxy.response.UpdateResponse;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.List;
 
@@ -15,4 +17,5 @@ public interface TeacherService extends IService<Teacher> {
     TeacherPageResponse list(PageGetRequest request, String token);
     InsertResponse insert(Teacher teacher, String token);
     UpdateResponse delete(List<Teacher> teachers, String token);
+    UpdateResponse updateAll(@RequestBody Teacher teacher, @RequestHeader("X-Token") String token);
 }

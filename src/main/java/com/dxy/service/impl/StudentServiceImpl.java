@@ -106,13 +106,27 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
         response.setCode(20001);
         if (UserUtil.get(token).getType() == 0) {
             ArrayList<Integer> ids = new ArrayList<>();
-            student.forEach(e->{
+            student.forEach(e -> {
                 ids.add(e.getId());
             });
-            if (studentMapper.delete(new LambdaQueryWrapper<Student>().in(Student::getId,ids))==student.size()){
+            if (studentMapper.delete(new LambdaQueryWrapper<Student>().in(Student::getId, ids)) == student.size()) {
                 response.setCode(20000);
             }
         }
         return response;
     }
+
+    @Override
+    public UpdateResponse updateAll(Student student, String token) {
+        UpdateResponse response = new UpdateResponse();
+        response.setCode(20001);
+        if (UserUtil.get(token).getType() == 0) {
+            if (studentMapper.update(student, new LambdaQueryWrapper<Student>().eq(Student::getId, student.getId())) == 1) {
+                response.setCode(20000);
+            }
+        }
+        return response;
+    }
+
+
 }

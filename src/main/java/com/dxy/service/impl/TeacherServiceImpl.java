@@ -85,4 +85,16 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
         }
         return response;
     }
+
+    @Override
+    public UpdateResponse updateAll(Teacher teacher, String token) {
+        UpdateResponse response = new UpdateResponse();
+        response.setCode(20001);
+        if (UserUtil.get(token).getType() == 0) {
+            if (teacherMapper.update(teacher, new LambdaQueryWrapper<Teacher>().in(Teacher::getId, teacher.getId())) == 1) {
+                response.setCode(20000);
+            }
+        }
+        return response;
+    }
 }

@@ -18,4 +18,5 @@ public interface StudentService extends IService<Student> {
     StudentPageResponse list(@RequestBody PageGetRequest request, @RequestHeader("X-Token") String token);
     UpdateResponse insert(@RequestBody Student student,@RequestHeader("X-Token") String token);
     UpdateResponse delete(@RequestBody List<Student> student,@RequestHeader("X-Token") String token);
+    UpdateResponse updateAll(@RequestBody Student student,@RequestHeader("X-Token") String token);
 }
