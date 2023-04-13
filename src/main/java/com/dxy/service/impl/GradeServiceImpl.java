@@ -18,6 +18,10 @@ import com.dxy.util.UserUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -97,11 +101,17 @@ public class GradeServiceImpl extends ServiceImpl<GradeMapper, Grade> implements
     @Override
     public GradesResponse getGradesByExamId(String id, String token) {
         User user = UserUtil.get(token);
+        GradesResponse response = new GradesResponse();
+        response.setCode(20001);
         if (user.getType() == 0) {
             ExamGrade examGrades = examGradeMapper.selectOne(new LambdaQueryWrapper<ExamGrade>().eq(ExamGrade::getExamId, id));
-
+            Grade grade = gradeMapper.selectOne(new LambdaQueryWrapper<Grade>().eq(Grade::getId, examGrades.getGradeId()));
+            response.setCode(20000);
+            response.setGrades(new ArrayList<Grade>(){{
+                add(grade);
+            }});
         }
-        return null;
+        return response;
     }
 
     @Override
@@ -141,4 +151,5 @@ public class GradeServiceImpl extends ServiceImpl<GradeMapper, Grade> implements
         }
         return response;
     }
+
 }

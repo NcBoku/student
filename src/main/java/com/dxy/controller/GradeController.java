@@ -37,7 +37,7 @@ public class GradeController {
 
     @PostMapping("/exam/{examId}")
     public GradesResponse getGradesByExamId(@PathVariable("examId")String id,@RequestHeader("X-Token") String token){
-        return null;
+        return gradeService.getGradesByExamId(id,token);
     }
 
     @PostMapping("/list")
