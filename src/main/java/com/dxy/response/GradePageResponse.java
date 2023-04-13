@@ -9,7 +9,7 @@ import java.util.List;
 public class GradePageResponse {
     private Integer code;
 
-    private List<Grade> grade;
+    private List<GradeResponse> grade;
 
     private Integer totalPage;
 }

@@ -5,16 +5,14 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dxy.mapper.CourseMapper;
 import com.dxy.mapper.ExamGradeMapper;
 import com.dxy.mapper.GradeCourseMapper;
 import com.dxy.mapper.GradeMapper;
 import com.dxy.pojo.*;
 import com.dxy.request.GradeUpdateRequest;
 import com.dxy.request.PageGetRequest;
-import com.dxy.response.GradePageResponse;
-import com.dxy.response.GradesResponse;
-import com.dxy.response.InsertResponse;
-import com.dxy.response.UpdateResponse;
+import com.dxy.response.*;
 import com.dxy.service.GradeService;
 import com.dxy.util.UserUtil;
 import org.springframework.beans.BeanUtils;
@@ -35,6 +33,9 @@ public class GradeServiceImpl extends ServiceImpl<GradeMapper, Grade> implements
 
     @Autowired
     private ExamGradeMapper examGradeMapper;
+
+    @Autowired
+    private CourseMapper courseMapper;
 
     @Override
     public InsertResponse insert(GradeUpdateRequest grade, String token) {
@@ -83,7 +84,7 @@ public class GradeServiceImpl extends ServiceImpl<GradeMapper, Grade> implements
         response.setCode(20001);
         if (UserUtil.get(token) != null && UserUtil.get(token).getType() == 0) {
             ArrayList<Integer> ids = new ArrayList<>();
-            grade.forEach(e->{
+            grade.forEach(e -> {
                 ids.add(e.getId());
             });
             if (gradeMapper.delete(new LambdaQueryWrapper<Grade>().in(Grade::getId, ids)) == grade.size()) {
@@ -110,12 +111,32 @@ public class GradeServiceImpl extends ServiceImpl<GradeMapper, Grade> implements
         GradePageResponse response = new GradePageResponse();
         response.setCode(20001);
         if (user.getType() == 0) {
-            Page<Grade> page = gradeMapper.selectPage(p, new LambdaQueryWrapper<Grade>().orderByDesc(Grade::getId));
+            LambdaQueryWrapper<Grade> wrapper = new LambdaQueryWrapper<>();
+            if (request.getKeyword() != null && !request.getKeyword().equals("")) {
+                wrapper.like(Grade::getName, request.getKeyword())
+                        .or()
+                        .like(Grade::getId,request.getKeyword());
+            }
+            Page<Grade> page = gradeMapper.selectPage(p, wrapper.orderByDesc(Grade::getId));
             response.setCode(20000);
-            response.setTotalPage((int)page.getTotal());
+            response.setTotalPage((int) page.getTotal());
             response.setGrade(new ArrayList<>());
-            page.getRecords().forEach(e->{
-                response.getGrade().add(e);
+            page.getRecords().forEach(e -> {
+                GradeResponse gradeResponse = new GradeResponse();
+                BeanUtils.copyProperties(e, gradeResponse);
+                ArrayList<Object> ids = new ArrayList<>();
+                List<GradeCourse> gradeCourses = gradeCourseMapper.selectList(new LambdaQueryWrapper<GradeCourse>().eq(GradeCourse::getGradeId, e.getId()));
+                gradeCourses.forEach(gc -> {
+                    ids.add(gc.getCourseId());
+                });
+                if (ids.size() != 0) {
+                    List<Course> courses = courseMapper.selectList(new LambdaQueryWrapper<Course>().in(Course::getId, ids));
+                    gradeResponse.setCourses(courses);
+                } else {
+                    gradeResponse.setCourses(new ArrayList<>());
+                }
+
+                response.getGrade().add(gradeResponse);
             });
         }
         return response;

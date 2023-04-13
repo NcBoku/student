@@ -47,6 +47,8 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
                             .like(Notice::getContent, request.getKeyword())
                             .or()
                             .like(Notice::getSender, request.getKeyword())
+                            .or()
+                            .like(Notice::getId,request.getKeyword())
             );
         }
 

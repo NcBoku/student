@@ -133,7 +133,7 @@ public class ClazzServiceImpl extends ServiceImpl<ClazzMapper, Clazz> implements
             LambdaQueryWrapper<Clazz> wrapper = new LambdaQueryWrapper<>();
             if (request.getKeyword() != null && !request.getKeyword().equals("")) {
                 wrapper.and(
-                        o -> o.like(Clazz::getName, request.getKeyword())
+                        o -> o.like(Clazz::getName, request.getKeyword()).or().like(Clazz::getId,request.getKeyword())
                 );
             }
             Page<Clazz> page = clazzMapper.selectPage(p, wrapper.orderByDesc(Clazz::getId));
