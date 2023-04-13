@@ -2,6 +2,7 @@ package com.dxy.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dxy.mapper.ClazzMapper;
 import com.dxy.mapper.GradeMapper;
@@ -11,7 +12,9 @@ import com.dxy.pojo.Clazz;
 import com.dxy.pojo.Grade;
 import com.dxy.pojo.Student;
 import com.dxy.pojo.User;
+import com.dxy.request.PageGetRequest;
 import com.dxy.request.StudentUpdateRequest;
+import com.dxy.response.StudentPageResponse;
 import com.dxy.response.StudentResponse;
 import com.dxy.response.UpdateResponse;
 import com.dxy.service.StudentService;
@@ -19,6 +22,9 @@ import com.dxy.util.UserUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> implements StudentService {
@@ -60,6 +66,53 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
         Student student = studentMapper.selectOne(new LambdaQueryWrapper<Student>().eq(Student::getUserId, user.getId()));
         BeanUtils.copyProperties(request, student);
         studentMapper.update(student, new LambdaQueryWrapper<Student>().eq(Student::getUserId, user.getId()));
+        return response;
+    }
+
+    @Override
+    public StudentPageResponse list(PageGetRequest request, String token) {
+        Page<Student> studentPage = new Page<>(request.getPage(), request.getSize());
+        StudentPageResponse response = new StudentPageResponse();
+        response.setStudents(new ArrayList<>());
+        response.setCode(20001);
+        if (UserUtil.get(token).getType() == 0) {
+            Page<Student> page = studentMapper.selectPage(studentPage, new LambdaQueryWrapper<Student>().orderByDesc(Student::getId));
+            response.setCode(20000);
+            response.setTotal((int) page.getTotal());
+            page.getRecords().forEach(
+                    e -> {
+                        response.getStudents().add(e);
+                    }
+            );
+        }
+        return response;
+    }
+
+    @Override
+    public UpdateResponse insert(Student student, String token) {
+        UpdateResponse response = new UpdateResponse();
+        response.setCode(20001);
+        if (UserUtil.get(token).getType() == 0) {
+            if (studentMapper.insert(student) == 1) {
+                response.setCode(20000);
+            }
+        }
+        return response;
+    }
+
+    @Override
+    public UpdateResponse delete(List<Student> student, String token) {
+        UpdateResponse response = new UpdateResponse();
+        response.setCode(20001);
+        if (UserUtil.get(token).getType() == 0) {
+            ArrayList<Integer> ids = new ArrayList<>();
+            student.forEach(e->{
+                ids.add(e.getId());
+            });
+            if (studentMapper.delete(new LambdaQueryWrapper<Student>().in(Student::getId,ids))==student.size()){
+                response.setCode(20000);
+            }
+        }
         return response;
     }
 }
