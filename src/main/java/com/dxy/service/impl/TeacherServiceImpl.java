@@ -3,16 +3,13 @@ package com.dxy.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dxy.mapper.CourseMapper;
+import com.dxy.mapper.TeacherCourseMapper;
 import com.dxy.mapper.TeacherMapper;
-import com.dxy.pojo.Student;
-import com.dxy.pojo.Teacher;
-import com.dxy.pojo.User;
+import com.dxy.pojo.*;
 import com.dxy.request.PageGetRequest;
 import com.dxy.request.StudentUpdateRequest;
-import com.dxy.response.InsertResponse;
-import com.dxy.response.StudentPageResponse;
-import com.dxy.response.TeacherPageResponse;
-import com.dxy.response.UpdateResponse;
+import com.dxy.response.*;
 import com.dxy.service.TeacherService;
 import com.dxy.util.UserUtil;
 import org.springframework.beans.BeanUtils;
@@ -27,6 +24,12 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
     @Autowired
     private TeacherMapper teacherMapper;
+
+    @Autowired
+    private TeacherCourseMapper teacherCourseMapper;
+
+    @Autowired
+    private CourseMapper courseMapper;
 
     @Override
     public UpdateResponse update(StudentUpdateRequest request, String token) {
@@ -51,7 +54,19 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
             response.setTotal((int) page.getTotal());
             page.getRecords().forEach(
                     e -> {
-                        response.getTeachers().add(e);
+                        TeacherResponse teacherResponse = new TeacherResponse();
+                        teacherResponse.setCourses(new ArrayList<>());
+                        BeanUtils.copyProperties(e, teacherResponse);
+                        List<TeacherCourse> teacherCourses = teacherCourseMapper.selectList(new LambdaQueryWrapper<TeacherCourse>().eq(TeacherCourse::getTeacherId, e.getId()));
+                        if (teacherCourses.size() != 0) {
+                            ArrayList<Integer> ids = new ArrayList<>();
+                            teacherCourses.forEach(tc->{
+                                ids.add(tc.getCourseId());
+                            });
+                            List<Course> courses = courseMapper.selectList(new LambdaQueryWrapper<Course>().in(Course::getId, ids));
+                            teacherResponse.setCourses(courses);
+                        }
+                        response.getTeachers().add(teacherResponse);
                     }
             );
         }

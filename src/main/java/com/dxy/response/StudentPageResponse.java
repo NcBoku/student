@@ -8,6 +8,6 @@ import java.util.List;
 @Data
 public class StudentPageResponse {
     private Integer code;
-    private List<Student> students;
+    private List<StudentResponse> students;
     private Integer total;
 }

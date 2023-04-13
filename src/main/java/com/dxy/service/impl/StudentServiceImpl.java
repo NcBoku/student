@@ -53,7 +53,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
             Clazz clazz = clazzMapper.selectOne(new LambdaQueryWrapper<Clazz>().eq(Clazz::getId, student.getClazzId()));
             BeanUtils.copyProperties(student, response);
             response.setGrade(grade.getName());
-            response.setClazz(clazz.getName());
+            response.setClazzName(clazz.getName());
         }
         return response;
     }
@@ -81,7 +81,10 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
             response.setTotal((int) page.getTotal());
             page.getRecords().forEach(
                     e -> {
-                        response.getStudents().add(e);
+                        StudentResponse studentResponse = new StudentResponse();
+                        BeanUtils.copyProperties(e, studentResponse);
+                        studentResponse.setClazzName(clazzMapper.selectOne(new LambdaQueryWrapper<Clazz>().eq(Clazz::getId, e.getClazzId())).getName());
+                        response.getStudents().add(studentResponse);
                     }
             );
         }

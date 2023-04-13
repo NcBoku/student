@@ -1,12 +1,13 @@
 package com.dxy.response;
 
-import com.dxy.pojo.Student;
+import com.dxy.pojo.Course;
+import com.dxy.pojo.Teacher;
 import lombok.Data;
 
-@Data
-public class StudentResponse {
-    private Integer code;
+import java.util.List;
 
+@Data
+public class TeacherResponse {
     private Integer id;
 
     private String number;
@@ -19,9 +20,9 @@ public class StudentResponse {
 
     private String qq;
 
-    private String clazzName;
+    private String photo;
 
-    private Integer clazzId;
+    private Integer userId;
 
-    private String grade;
+    private List<Course> courses;
 }
