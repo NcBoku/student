@@ -35,6 +35,9 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     @Autowired
     private ClazzMapper clazzMapper;
 
+    @Autowired
+    private UserMapper userMapper;
+
 
     @Override
     public StudentResponse info(String token) {
@@ -74,26 +77,26 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
         response.setCode(20001);
         if (UserUtil.get(token).getType() == 0) {
             LambdaQueryWrapper<Student> wrapper = new LambdaQueryWrapper<>();
-            if (request.getKeyword()!=null&&!request.getKeyword().equals("")){
+            if (request.getKeyword() != null && !request.getKeyword().equals("")) {
                 List<Clazz> clazz = clazzMapper.selectList(new LambdaQueryWrapper<Clazz>().like(Clazz::getName, request.getKeyword()));
                 ArrayList<Integer> cids = new ArrayList<>();
                 cids.add(-1);
-                if (clazz.size()!=0){
-                    clazz.forEach(e->{
+                if (clazz.size() != 0) {
+                    clazz.forEach(e -> {
                         cids.add(e.getId());
                     });
                 }
-                wrapper.like(Student::getId,request.getKeyword())
+                wrapper.like(Student::getId, request.getKeyword())
                         .or()
-                        .like(Student::getNumber,request.getKeyword())
+                        .like(Student::getNumber, request.getKeyword())
                         .or()
-                        .like(Student::getSex,request.getKeyword())
+                        .like(Student::getSex, request.getKeyword())
                         .or()
-                        .like(Student::getName,request.getKeyword())
+                        .like(Student::getName, request.getKeyword())
                         .or()
-                        .like(Student::getQq,request.getKeyword())
+                        .like(Student::getQq, request.getKeyword())
                         .or()
-                        .in(Student::getClazzId,cids);
+                        .in(Student::getClazzId, cids);
             }
             Page<Student> page = studentMapper.selectPage(studentPage, wrapper.orderByDesc(Student::getId));
             response.setCode(20000);
@@ -115,6 +118,13 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
         UpdateResponse response = new UpdateResponse();
         response.setCode(20001);
         if (UserUtil.get(token).getType() == 0) {
+            User user = new User();
+            user.setType(2);
+            user.setName(student.getName());
+            user.setAccount(student.getNumber());
+            user.setPassword(student.getNumber());
+            userMapper.insert(user);
+            student.setUserId(user.getId());
             if (studentMapper.insert(student) == 1) {
                 response.setCode(20000);
             }

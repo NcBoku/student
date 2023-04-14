@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dxy.mapper.CourseMapper;
 import com.dxy.mapper.TeacherCourseMapper;
 import com.dxy.mapper.TeacherMapper;
+import com.dxy.mapper.UserMapper;
 import com.dxy.pojo.*;
 import com.dxy.request.PageGetRequest;
 import com.dxy.request.StudentUpdateRequest;
@@ -31,6 +32,9 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
     @Autowired
     private CourseMapper courseMapper;
+
+    @Autowired
+    private UserMapper userMapper;
 
     @Override
     public UpdateResponse update(StudentUpdateRequest request, String token) {
@@ -94,6 +98,13 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
         if (UserUtil.get(token).getType() == 0) {
             Teacher teacher = new Teacher();
             BeanUtils.copyProperties(request, teacher);
+            User user = new User();
+            user.setType(1);
+            user.setName(teacher.getName());
+            user.setAccount(teacher.getNumber());
+            user.setPassword(teacher.getNumber());
+            userMapper.insert(user);
+            teacher.setUserId(user.getId());
             if (teacherMapper.insert(teacher) == 1) {
 
                 request.getCourseIds().forEach(e -> {

@@ -8,9 +8,13 @@ import com.dxy.request.ExamScoreRequest;
 import com.dxy.response.ExamPageResponse;
 import com.dxy.response.ExamScoreResponse;
 import com.dxy.response.InsertResponse;
+import com.dxy.response.UpdateResponse;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 public interface ExamService extends IService<Exam> {
     ExamPageResponse list(Page<Exam> page,String token);
     InsertResponse insert(ExamInsertRequest request, String token);
     ExamScoreResponse score(ExamScoreRequest request,String token);
+    UpdateResponse update(@RequestBody ExamInsertRequest request, @RequestHeader("X-Token") String token);
 }

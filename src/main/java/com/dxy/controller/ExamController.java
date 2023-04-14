@@ -8,6 +8,7 @@ import com.dxy.request.StudentUpdateRequest;
 import com.dxy.response.ExamPageResponse;
 import com.dxy.response.ExamScoreResponse;
 import com.dxy.response.InsertResponse;
+import com.dxy.response.UpdateResponse;
 import com.dxy.service.ExamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +35,11 @@ public class ExamController {
 
     @PostMapping("/score")
     public ExamScoreResponse score(@RequestBody ExamScoreRequest request, @RequestHeader("X-Token") String token) {
-        return examService.score(request,token);
+        return examService.score(request, token);
+    }
+
+    @PostMapping("/update")
+    public UpdateResponse update(@RequestBody ExamInsertRequest request, @RequestHeader("X-Token") String token) {
+        return examService.update(request, token);
     }
 }

@@ -48,7 +48,7 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
             if (request.getKeyword() != null) {
                 wrapper.like(Course::getName, request.getKeyword())
                         .or()
-                        .like(Course::getId,request.getKeyword());
+                        .like(Course::getId, request.getKeyword());
             }
             Page<Course> page = courseMapper.selectPage(coursePage, wrapper.orderByDesc(Course::getId));
             response.setCode(20000);
@@ -96,6 +96,26 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
             });
             if (courseMapper.delete(new LambdaQueryWrapper<Course>().in(Course::getId, ids)) == course.size()) {
                 response.setCode(20000);
+            }
+        }
+        return response;
+    }
+
+    @Override
+    public CoursePageResponse getCourseByExamId(Integer id, String token) {
+        CoursePageResponse response = new CoursePageResponse();
+        response.setCode(20001);
+        response.setCourses(new ArrayList<>());
+        if (UserUtil.get(token).getType() == 0) {
+            List<ExamCourse> examCourses = examCourseMapper.selectList(new LambdaQueryWrapper<ExamCourse>().eq(ExamCourse::getExamId, id));
+            if (examCourses.size() != 0) {
+                ArrayList<Integer> ids = new ArrayList<>();
+                examCourses.forEach(e -> {
+                    ids.add(e.getCourseId());
+                });
+                List<Course> courses = courseMapper.selectList(new LambdaQueryWrapper<Course>().in(Course::getId, ids));
+                response.setCode(20000);
+                response.setCourses(courses);
             }
         }
         return response;

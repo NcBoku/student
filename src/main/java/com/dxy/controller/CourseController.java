@@ -39,4 +39,9 @@ public class CourseController {
     public UpdateResponse delete(@RequestBody List<Course> course, @RequestHeader("X-Token") String token){
         return courseService.delete(course,token);
     }
+
+    @PostMapping("/exam/{id}")
+    public CoursePageResponse getCourseByExamId(@PathVariable("id")Integer id, @RequestHeader("X-Token") String token){
+        return courseService.getCourseByExamId(id,token);
+    }
 }

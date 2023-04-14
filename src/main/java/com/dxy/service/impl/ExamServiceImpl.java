@@ -259,4 +259,44 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
         response.setData(data);
         return response;
     }
+
+    @Override
+    public UpdateResponse update(ExamInsertRequest request, String token) {
+        User user = UserUtil.get(token);
+        UpdateResponse response = new UpdateResponse();
+        response.setCode(20000);
+        if (user != null && user.getType() == 0) {
+            response.setCode(20001);
+            examClazzMapper.delete(new LambdaQueryWrapper<ExamClazz>().eq(ExamClazz::getExamId, request.getId()));
+            examGradeMapper.delete(new LambdaQueryWrapper<ExamGrade>().eq(ExamGrade::getExamId, request.getId()));
+            examCourseMapper.delete(new LambdaQueryWrapper<ExamCourse>().eq(ExamCourse::getExamId, request.getId()));
+
+            if (request.getType() == 0) {
+                ExamGrade examGrade = new ExamGrade();
+                examGrade.setExamId(request.getId());
+                examGrade.setGradeId(request.getGradeId());
+                examGradeMapper.insert(examGrade);
+
+            } else if (request.getType() == 1) {
+                request.getClazzIds().forEach(
+                        id -> {
+                            ExamClazz examClazz = new ExamClazz();
+                            examClazz.setExamId(request.getId());
+                            examClazz.setClazzId(id);
+                            examClazzMapper.insert(examClazz);
+                        }
+                );
+            }
+            request.getCourseIds().forEach(
+                    id -> {
+                        ExamCourse examCourse = new ExamCourse();
+                        examCourse.setExamId(request.getId());
+                        examCourse.setCourseId(id);
+                        examCourseMapper.insert(examCourse);
+                    }
+            );
+
+        }
+        return response;
+    }
 }
