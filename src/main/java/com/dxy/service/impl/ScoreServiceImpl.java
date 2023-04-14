@@ -101,6 +101,7 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
                                 response.getGradeMap().add(grade);
                                 List<Clazz> clazz = clazzMapper.selectList(new LambdaQueryWrapper<Clazz>().eq(Clazz::getGradeId, g.getGradeId()));
                                 clazz.forEach(c -> {
+                                    if (!response.getClazzMap().contains(c))
                                     response.getClazzMap().add(c);
                                     List<Score> scoreList = scoreMapper.selectList(new LambdaQueryWrapper<Score>()
                                             .eq(Score::getExamId, examId)
