@@ -8,6 +8,7 @@ import com.dxy.pojo.*;
 import com.dxy.request.ScoreInsertRequest;
 import com.dxy.response.CourseGradeClazzScoreResponse;
 import com.dxy.response.InsertResponse;
+import com.dxy.response.UpdateResponse;
 import com.dxy.service.ScoreService;
 import com.dxy.util.UserUtil;
 import org.springframework.beans.BeanUtils;
@@ -67,11 +68,12 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
     public CourseGradeClazzScoreResponse courseClazzScore(String examId, String token) {
         User user = UserUtil.get(token);
         CourseGradeClazzScoreResponse response = new CourseGradeClazzScoreResponse();
-        response.setCode(20001);
-        response.setClazzMap(new HashMap<>());
-        response.setCourseMap(new HashMap<>());
-        response.setGradeMap(new HashMap<>());
+        response.setCode(20000);
+        response.setClazzMap(new ArrayList<>());
+        response.setCourseMap(new ArrayList<>());
+        response.setGradeMap(new ArrayList<>());
         response.setMap(new HashMap<>());
+        response.setStudents(new ArrayList<>());
         Teacher teacher = teacherMapper.selectOne(new LambdaQueryWrapper<Teacher>().eq(Teacher::getUserId, user.getId()));
         List<TeacherCourse> teacherCourses = teacherCourseMapper.selectList(new LambdaQueryWrapper<TeacherCourse>().eq(TeacherCourse::getTeacherId, teacher.getId()));
         ArrayList<Integer> cids = new ArrayList<>();
@@ -86,28 +88,56 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
         examCourses.forEach(
                 t -> {
                     Course course = courseMapper.selectOne(new LambdaQueryWrapper<Course>().eq(Course::getId, t.getCourseId()));
-                    response.getCourseMap().put(t.getCourseId(), course);
+                    response.getCourseMap().add(course);
                     response.getMap().put(t.getCourseId(), new HashMap<>());
+
                     List<GradeCourse> gradeCourses = gradeCourseMapper.selectList(new LambdaQueryWrapper<GradeCourse>().eq(GradeCourse::getCourseId, course.getId()));
                     gradeCourses.forEach(
                             g -> {
                                 Grade grade = gradeMapper.selectOne(new LambdaQueryWrapper<Grade>().eq(Grade::getId, g.getGradeId()));
-                                response.getGradeMap().put(g.getGradeId(), grade);
-                                response.getMap().get(t.getCourseId()).put(grade.getId(), new HashMap<>());
+                                if (grade == null) {
+                                    return;
+                                }
+                                response.getGradeMap().add(grade);
                                 List<Clazz> clazz = clazzMapper.selectList(new LambdaQueryWrapper<Clazz>().eq(Clazz::getGradeId, g.getGradeId()));
                                 clazz.forEach(c -> {
-                                    response.getClazzMap().put(c.getId(), c);
+                                    response.getClazzMap().add(c);
                                     List<Score> scoreList = scoreMapper.selectList(new LambdaQueryWrapper<Score>()
                                             .eq(Score::getExamId, examId)
                                             .eq(Score::getCourseId, t.getCourseId())
                                             .eq(Score::getClazzId, c.getId())
                                     );
-                                    response.getMap().get(t.getCourseId()).get(g.getGradeId()).put(c.getId(), scoreList);
+                                    ArrayList<Integer> sids = new ArrayList<>();
+                                    scoreList.forEach(s -> {
+                                        sids.add(s.getStudentId());
+                                    });
+                                    if (sids.size() != 0) {
+                                        List<Student> students = studentMapper.selectList(new LambdaQueryWrapper<Student>().in(Student::getId, sids));
+                                        response.setStudents(students);
+                                        response.getMap().get(t.getCourseId()).put(c.getId(), scoreList);
+                                    } else {
+                                        response.getClazzMap().remove(response.getClazzMap().size() - 1);
+                                        response.getMap().get(t.getCourseId()).remove(g.getGradeId());
+                                    }
+
                                 });
                             }
                     );
                 }
         );
+        return response;
+    }
+
+    @Override
+    public UpdateResponse update(List<Score> scoreList, String token) {
+        UpdateResponse response = new UpdateResponse();
+        response.setCode(20001);
+        if(UserUtil.get(token).getType()==1){
+            response.setCode(20000);
+            scoreList.forEach(e->{
+                scoreMapper.update(e,new LambdaQueryWrapper<Score>().eq(Score::getId,e.getId()));
+            });
+        }
         return response;
     }
 }

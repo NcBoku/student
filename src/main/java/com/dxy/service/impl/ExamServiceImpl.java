@@ -212,7 +212,23 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                 examGrade.setExamId(exam.getId());
                 examGrade.setGradeId(request.getGradeId());
                 examGradeMapper.insert(examGrade);
-
+                List<Clazz> clazz = clazzMapper.selectList(new LambdaQueryWrapper<Clazz>().eq(Clazz::getGradeId, request.getGradeId()));
+                ArrayList<Integer> clazzIds = new ArrayList<>();
+                clazz.forEach(e->{
+                    clazzIds.add(e.getId());
+                });
+                List<Student> students = studentMapper.selectList(new LambdaQueryWrapper<Student>().in(Student::getClazzId, clazzIds));
+                students.forEach(e->{
+                    request.getCourseIds().forEach(c->{
+                        Score score = new Score();
+                        score.setClazzId(e.getClazzId());
+                        score.setScore(null);
+                        score.setExamId(exam.getId());
+                        score.setStudentId(e.getId());
+                        score.setCourseId(c);
+                        scoreMapper.insert(score);
+                    });
+                });
             } else if (request.getType() == 1) {
                 request.getClazzIds().forEach(
                         id -> {
@@ -222,6 +238,18 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                             examClazzMapper.insert(examClazz);
                         }
                 );
+                List<Student> students = studentMapper.selectList(new LambdaQueryWrapper<Student>().in(Student::getClazzId, request.getClazzIds()));
+                students.forEach(e->{
+                    request.getCourseIds().forEach(c->{
+                        Score score = new Score();
+                        score.setClazzId(e.getClazzId());
+                        score.setScore(null);
+                        score.setExamId(exam.getId());
+                        score.setStudentId(e.getId());
+                        score.setCourseId(c);
+                        scoreMapper.insert(score);
+                    });
+                });
             }
             request.getCourseIds().forEach(
                     id -> {
@@ -273,7 +301,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                         .eq(Score::getStudentId, students.get(j).getId())
                         .eq(Score::getCourseId, courses.get(k).getId())
                 );
-                data += "prop" + k + ":'" + (score == null ? "成绩未录入" : score.getScore()) + "'";
+                data += "prop" + k + ":'" + ((score == null||score.getScore()==null) ? "成绩未录入" : score.getScore()) + "'";
                 if (k != courses.size() - 1) {
                     data += ",";
                 }

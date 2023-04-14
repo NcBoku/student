@@ -4,10 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.dxy.mapper.ClazzMapper;
-import com.dxy.mapper.GradeMapper;
-import com.dxy.mapper.StudentMapper;
-import com.dxy.mapper.UserMapper;
+import com.dxy.mapper.*;
 import com.dxy.pojo.*;
 import com.dxy.request.PageGetRequest;
 import com.dxy.request.StudentUpdateRequest;
@@ -37,6 +34,18 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private ScoreMapper scoreMapper;
+
+    @Autowired
+    private ExamGradeMapper examGradeMapper;
+
+    @Autowired
+    private ExamClazzMapper examClazzMapper;
+
+    @Autowired
+    private ExamCourseMapper examCourseMapper;
 
 
     @Override
@@ -128,6 +137,27 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
             Clazz clazz = clazzMapper.selectOne(new LambdaQueryWrapper<Clazz>().eq(Clazz::getId, student.getClazzId()));
             student.setGradeId(clazz.getGradeId());
             if (studentMapper.insert(student) == 1) {
+                List<ExamGrade> examGrades = examGradeMapper.selectList(new LambdaQueryWrapper<ExamGrade>().eq(ExamGrade::getGradeId, clazz.getGradeId()));
+                List<ExamClazz> examClazz = examClazzMapper.selectList(new LambdaQueryWrapper<ExamClazz>().eq(ExamClazz::getClazzId, clazz.getId()));
+                ArrayList<Integer> examIds = new ArrayList<>();
+                examGrades.forEach(e->{
+                    examIds.add(e.getExamId());
+                });
+                examClazz.forEach(e->{
+                    examIds.add(e.getExamId());
+                });
+                examIds.forEach(id->{
+                    List<ExamCourse> examCourses = examCourseMapper.selectList(new LambdaQueryWrapper<ExamCourse>().eq(ExamCourse::getExamId, id));
+                    examCourses.forEach(e->{
+                        Score score = new Score();
+                        score.setStudentId(student.getId());
+                        score.setClazzId(student.getClazzId());
+                        score.setCourseId(e.getCourseId());
+                        score.setExamId(id);
+                        scoreMapper.insert(score);
+                    });
+
+                });
                 response.setCode(20000);
             }
         }
