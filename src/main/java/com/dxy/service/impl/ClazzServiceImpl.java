@@ -41,6 +41,12 @@ public class ClazzServiceImpl extends ServiceImpl<ClazzMapper, Clazz> implements
     @Override
     public ClazzIdsResponse getClazzByGradeId(List<Integer> ids) {
         HashMap<Integer, List<Clazz>> map = new HashMap<>();
+        if (ids.size()==0){
+            ClazzIdsResponse clazzIdsResponse = new ClazzIdsResponse();
+            clazzIdsResponse.setCode(20000);
+            clazzIdsResponse.setMap(map);
+            return clazzIdsResponse;
+        }
         List<Exam> exams = examMapper.selectList(new LambdaQueryWrapper<Exam>().in(Exam::getId, ids));
 
         exams.forEach(e -> {

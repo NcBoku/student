@@ -1,10 +1,8 @@
 package com.dxy.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.dxy.request.ExamGetRequest;
-import com.dxy.request.ExamInsertRequest;
-import com.dxy.request.ExamScoreRequest;
-import com.dxy.request.StudentUpdateRequest;
+import com.dxy.pojo.Exam;
+import com.dxy.request.*;
 import com.dxy.response.ExamPageResponse;
 import com.dxy.response.ExamScoreResponse;
 import com.dxy.response.InsertResponse;
@@ -14,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 @RestController
 @RequestMapping("/exam")
@@ -24,8 +23,8 @@ public class ExamController {
     private ExamService examService;
 
     @RequestMapping("/list")
-    public ExamPageResponse list(@RequestBody ExamGetRequest request, HttpServletRequest r) {
-        return examService.list(new Page<>(request.getPage(), request.getSize()), r.getHeader("X-Token"));
+    public ExamPageResponse list(@RequestBody PageGetRequest request, HttpServletRequest r) {
+        return examService.list(new Page<>(request.getPage(), request.getSize()), r.getHeader("X-Token"),request.getKeyword());
     }
 
     @PostMapping("/insert")
@@ -41,5 +40,10 @@ public class ExamController {
     @PostMapping("/update")
     public UpdateResponse update(@RequestBody ExamInsertRequest request, @RequestHeader("X-Token") String token) {
         return examService.update(request, token);
+    }
+
+    @PostMapping("/delete")
+    public UpdateResponse delete(@RequestBody List<Exam> ids, @RequestHeader("X-Token") String token){
+        return examService.delete(ids,token);
     }
 }

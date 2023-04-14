@@ -12,9 +12,12 @@ import com.dxy.response.UpdateResponse;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
+import java.util.List;
+
 public interface ExamService extends IService<Exam> {
-    ExamPageResponse list(Page<Exam> page,String token);
+    ExamPageResponse list(Page<Exam> page,String token,String keyword);
     InsertResponse insert(ExamInsertRequest request, String token);
     ExamScoreResponse score(ExamScoreRequest request,String token);
     UpdateResponse update(@RequestBody ExamInsertRequest request, @RequestHeader("X-Token") String token);
+    UpdateResponse delete(@RequestBody List<Exam> ids, @RequestHeader("X-Token") String token);
 }

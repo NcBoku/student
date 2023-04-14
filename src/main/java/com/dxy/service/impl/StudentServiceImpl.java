@@ -125,6 +125,8 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
             user.setPassword(student.getNumber());
             userMapper.insert(user);
             student.setUserId(user.getId());
+            Clazz clazz = clazzMapper.selectOne(new LambdaQueryWrapper<Clazz>().eq(Clazz::getId, student.getClazzId()));
+            student.setGradeId(clazz.getGradeId());
             if (studentMapper.insert(student) == 1) {
                 response.setCode(20000);
             }
@@ -138,10 +140,18 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
         response.setCode(20001);
         if (UserUtil.get(token).getType() == 0) {
             ArrayList<Integer> ids = new ArrayList<>();
+            ArrayList<Integer> uids = new ArrayList<>();
             student.forEach(e -> {
                 ids.add(e.getId());
             });
-            if (studentMapper.delete(new LambdaQueryWrapper<Student>().in(Student::getId, ids)) == student.size()) {
+
+            List<Student> students = studentMapper.selectList(new LambdaQueryWrapper<Student>().in(Student::getId, ids));
+            students.forEach(e->{
+                uids.add(e.getUserId());
+            });
+
+            if (studentMapper.delete(new LambdaQueryWrapper<Student>().in(Student::getId, ids)) == student.size()
+                    &&userMapper.delete(new LambdaQueryWrapper<User>().in(User::getId,uids)) == students.size()) {
                 response.setCode(20000);
             }
         }

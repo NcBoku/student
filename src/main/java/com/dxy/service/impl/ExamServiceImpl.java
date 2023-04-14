@@ -54,7 +54,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
 
 
     @Override
-    public ExamPageResponse list(Page<Exam> page, String token) {
+    public ExamPageResponse list(Page<Exam> page, String token,String keyword) {
         User user = UserUtil.get(token);
         ExamPageResponse response = new ExamPageResponse();
         response.setCode(20001);
@@ -78,7 +78,18 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                 if (examIds.size() == 0) {
                     return response;
                 }
-                examPage = examMapper.selectPage(page, new LambdaQueryWrapper<Exam>().in(Exam::getId, examIds));
+                LambdaQueryWrapper<Exam> wrapper = new LambdaQueryWrapper<>();
+                if (keyword!=null&&!keyword.equals("")){
+                    wrapper.and(
+                            o->o.like(Exam::getId,keyword)
+                                    .or()
+                                    .like(Exam::getName,keyword)
+                                    .or()
+                                    .like(Exam::getRemark,keyword)
+                    );
+
+                }
+                examPage = examMapper.selectPage(page,wrapper.in(Exam::getId, examIds));
             } else if (user.getType() == 1) {
                 Teacher teacher = teacherMapper.selectOne(new LambdaQueryWrapper<Teacher>().eq(Teacher::getUserId, user.getId()));
                 List<TeacherCourse> teacherCourses = teacherCourseMapper.selectList(new LambdaQueryWrapper<TeacherCourse>().eq(TeacherCourse::getTeacherId, teacher.getId()));
@@ -98,9 +109,31 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                 if (examIds.size() == 0) {
                     return response;
                 }
-                examPage = examMapper.selectPage(page, new LambdaQueryWrapper<Exam>().in(Exam::getId, examIds));
+                LambdaQueryWrapper<Exam> wrapper = new LambdaQueryWrapper<>();
+                if (keyword!=null&&!keyword.equals("")){
+                    wrapper.and(
+                            o->o.like(Exam::getId,keyword)
+                                    .or()
+                                    .like(Exam::getName,keyword)
+                                    .or()
+                                    .like(Exam::getRemark,keyword)
+                    );
+
+                }
+                examPage = examMapper.selectPage(page, wrapper.in(Exam::getId, examIds));
             } else {
-                examPage = examMapper.selectPage(page, new LambdaQueryWrapper<Exam>().orderByDesc(Exam::getTime));
+                LambdaQueryWrapper<Exam> wrapper = new LambdaQueryWrapper<>();
+                if (keyword!=null&&!keyword.equals("")){
+                    wrapper.and(
+                            o->o.like(Exam::getId,keyword)
+                                    .or()
+                                    .like(Exam::getName,keyword)
+                                    .or()
+                                    .like(Exam::getRemark,keyword)
+                    );
+
+                }
+                examPage = examMapper.selectPage(page, wrapper.orderByDesc(Exam::getTime));
             }
 
 
@@ -264,12 +297,16 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
     public UpdateResponse update(ExamInsertRequest request, String token) {
         User user = UserUtil.get(token);
         UpdateResponse response = new UpdateResponse();
-        response.setCode(20000);
+        response.setCode(20001);
         if (user != null && user.getType() == 0) {
-            response.setCode(20001);
+            response.setCode(20000);
             examClazzMapper.delete(new LambdaQueryWrapper<ExamClazz>().eq(ExamClazz::getExamId, request.getId()));
             examGradeMapper.delete(new LambdaQueryWrapper<ExamGrade>().eq(ExamGrade::getExamId, request.getId()));
             examCourseMapper.delete(new LambdaQueryWrapper<ExamCourse>().eq(ExamCourse::getExamId, request.getId()));
+
+            Exam exam = new Exam();
+            BeanUtils.copyProperties(request, exam);
+            examMapper.update(exam, new LambdaQueryWrapper<Exam>().eq(Exam::getId, exam.getId()));
 
             if (request.getType() == 0) {
                 ExamGrade examGrade = new ExamGrade();
@@ -296,6 +333,25 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                     }
             );
 
+        }
+        return response;
+    }
+
+    @Override
+    public UpdateResponse delete(List<Exam> id, String token) {
+        ArrayList<Integer> ids = new ArrayList<>();
+        for (Exam exam : id) {
+            ids.add(exam.getId());
+        }
+        User user = UserUtil.get(token);
+        UpdateResponse response = new UpdateResponse();
+        if (user != null && user.getType() == 0) {
+            scoreMapper.delete(new LambdaQueryWrapper<Score>().in(Score::getExamId, ids));
+            examGradeMapper.delete(new LambdaQueryWrapper<ExamGrade>().in(ExamGrade::getExamId, ids));
+            examCourseMapper.delete(new LambdaQueryWrapper<ExamCourse>().in(ExamCourse::getExamId, ids));
+            examClazzMapper.delete(new LambdaQueryWrapper<ExamClazz>().in(ExamClazz::getExamId, ids));
+            examMapper.delete(new LambdaQueryWrapper<Exam>().in(Exam::getId, ids));
+            response.setCode(20000);
         }
         return response;
     }
