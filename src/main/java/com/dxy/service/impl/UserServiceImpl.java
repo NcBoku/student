@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dxy.mapper.UserMapper;
 import com.dxy.pojo.User;
+import com.dxy.request.UserPasswordUpdateRequest;
 import com.dxy.response.UpdateResponse;
 import com.dxy.response.UserInfoResponse;
 import com.dxy.response.UserLoginResponse;
@@ -73,6 +74,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         UserUtil.clear(token);
         UpdateResponse response = new UpdateResponse();
         response.setCode(20000);
+        return response;
+    }
+
+    @Override
+    public UpdateResponse updatePassword(UserPasswordUpdateRequest request, String token) {
+        UpdateResponse response = new UpdateResponse();
+        response.setCode(20001);
+        User user = UserUtil.get(token);
+        if (user.getPassword().equals(request.getOldPassword())){
+            user.setPassword(request.getNewPassword());
+            if (userMapper.update(user,new LambdaQueryWrapper<User>().eq(User::getId,user.getId()))==1){
+                response.setCode(20000);
+            }
+        }
         return response;
     }
 }

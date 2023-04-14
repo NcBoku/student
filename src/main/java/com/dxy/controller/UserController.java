@@ -1,12 +1,11 @@
 package com.dxy.controller;
 
 import com.dxy.request.UserLoginRequest;
-import com.dxy.response.InsertResponse;
+import com.dxy.request.UserPasswordUpdateRequest;
 import com.dxy.response.UpdateResponse;
 import com.dxy.response.UserInfoResponse;
 import com.dxy.response.UserLoginResponse;
 import com.dxy.service.UserService;
-import jdk.nashorn.internal.parser.Token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,5 +30,10 @@ public class UserController {
     @PostMapping("logout")
     public UpdateResponse logout(@RequestHeader("X-Token")String token){
         return userService.logout(token);
+    }
+
+    @PostMapping("/update/password")
+    public UpdateResponse updatePassword(@RequestBody UserPasswordUpdateRequest request,@RequestHeader("X-Token")String token){
+        return userService.updatePassword(request,token);
     }
 }

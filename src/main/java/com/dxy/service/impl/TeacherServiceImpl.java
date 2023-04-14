@@ -56,15 +56,15 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
         if (UserUtil.get(token).getType() == 0) {
             LambdaQueryWrapper<Teacher> wrapper = new LambdaQueryWrapper<>();
             if (request.getKeyword() != null && !request.getKeyword().equals("")) {
-                wrapper.like(Teacher::getId,request.getKeyword())
+                wrapper.like(Teacher::getId, request.getKeyword())
                         .or()
-                        .like(Teacher::getNumber,request.getKeyword())
+                        .like(Teacher::getNumber, request.getKeyword())
                         .or()
-                        .like(Teacher::getSex,request.getKeyword())
+                        .like(Teacher::getSex, request.getKeyword())
                         .or()
-                        .like(Teacher::getName,request.getKeyword())
+                        .like(Teacher::getName, request.getKeyword())
                         .or()
-                        .like(Teacher::getQq,request.getKeyword());
+                        .like(Teacher::getQq, request.getKeyword());
 
             }
             Page<Teacher> page = teacherMapper.selectPage(teacherPage, wrapper.orderByDesc(Teacher::getId));
@@ -153,6 +153,28 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
                 response.setCode(20000);
             }
+        }
+        return response;
+    }
+
+    @Override
+    public TeacherResponse info(String token) {
+        TeacherResponse response = new TeacherResponse();
+        response.setCode(20001);
+        User user = UserUtil.get(token);
+        if (user != null) {
+            Teacher teacher = teacherMapper.selectOne(new LambdaQueryWrapper<Teacher>().eq(Teacher::getUserId, user.getId()));
+            BeanUtils.copyProperties(teacher,response);
+            List<TeacherCourse> teacherCourses = teacherCourseMapper.selectList(new LambdaQueryWrapper<TeacherCourse>().eq(TeacherCourse::getTeacherId, teacher.getId()));
+            if (teacherCourses.size() != 0) {
+                ArrayList<Integer> ids = new ArrayList<>();
+                teacherCourses.forEach(e -> {
+                    ids.add(e.getCourseId());
+                });
+                List<Course> courses = courseMapper.selectList(new LambdaQueryWrapper<Course>().in(Course::getId, ids));
+                response.setCourses(courses);
+            }
+            response.setCode(20000);
         }
         return response;
     }

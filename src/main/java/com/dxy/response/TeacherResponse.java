@@ -8,6 +8,8 @@ import java.util.List;
 
 @Data
 public class TeacherResponse {
+    private Integer code;
+
     private Integer id;
 
     private String number;
