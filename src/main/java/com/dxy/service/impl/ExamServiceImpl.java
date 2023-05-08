@@ -224,7 +224,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
             }
         }
 
-        if (user != null && user.getType() == 0) {
+        if (true) {
             response.setCode(20000);
             int count = 0;
             List<Student> ss = new ArrayList<>();

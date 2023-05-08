@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.dxy.mapper.StudentMapper;
 import com.dxy.pojo.Exam;
 import com.dxy.pojo.User;
+import com.dxy.request.ExamInsertRequest;
 import com.dxy.request.ExamScoreRequest;
 import com.dxy.request.StudentUpdateRequest;
 import com.dxy.response.ExamPageResponse;
@@ -37,7 +38,7 @@ public class TestCases {
 
     @Test
     public void test10() {
-        System.out.println(clazzroomService.getRestClazzroom(null,null));
+
 
     }
 }
