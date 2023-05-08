@@ -1,12 +1,12 @@
 package com.dxy.controller;
 
+import com.dxy.response.ClazzroomResponse;
 import com.dxy.response.InsertResponse;
 import com.dxy.service.ClazzroomService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/classroom")
@@ -20,7 +20,9 @@ public class ClassroomController {
         return null;
     }
 
-    @PostMapping("/list")
-    public List<>
+    @PostMapping("/list/{id}")
+    public ClazzroomResponse list(@PathVariable("id") Integer id){
+        return clazzroomService.getInfo(id);
+    }
 
 }

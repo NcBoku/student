@@ -4,8 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dxy.mapper.*;
 import com.dxy.pojo.*;
+import com.dxy.response.ClazzroomResponse;
+import com.dxy.response.ExamResponse;
 import com.dxy.service.ClazzService;
 import com.dxy.service.ClazzroomService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,19 +20,49 @@ import java.util.List;
 @Service
 public class ClazzroomServiceImpl extends ServiceImpl<ClazzroomMapper, Clazzroom> implements ClazzroomService {
     @Autowired
-    private ClazzroomMapper clazzroomMapper;
-
-    @Autowired
-    private ExamClazzroomMapper examClazzroomMapper;
-
-    @Autowired
     private ExamMapper examMapper;
+
+    @Autowired
+    private StudentMapper studentMapper;
+
+    @Autowired
+    private TeacherMapper teacherMapper;
+
+    @Autowired
+    private ExamClazzMapper examClazzMapper;
+
+    @Autowired
+    private ExamGradeMapper examGradeMapper;
+
+    @Autowired
+    private ExamCourseMapper examCourseMapper;
+
+    @Autowired
+    private TeacherCourseMapper teacherCourseMapper;
+
+    @Autowired
+    private GradeMapper gradeMapper;
 
     @Autowired
     private ClazzMapper clazzMapper;
 
     @Autowired
+    private CourseMapper courseMapper;
+
+    @Autowired
     private ScoreMapper scoreMapper;
+
+    @Autowired
+    private GradeCourseMapper gradeCourseMapper;
+
+    @Autowired
+    private ClazzroomService clazzroomService;
+
+    @Autowired
+    private ExamClazzroomMapper examClazzroomMapper;
+
+    @Autowired
+    private ClazzroomMapper clazzroomMapper;
 
 
     @Transactional
@@ -132,5 +165,85 @@ public class ClazzroomServiceImpl extends ServiceImpl<ClazzroomMapper, Clazzroom
     @Override
     public List<Clazz> getRestTeacher(Date start, Date end) {
         return null;
+    }
+
+    @Override
+    public ClazzroomResponse getInfo(Integer id){
+        ClazzroomResponse response = new ClazzroomResponse();
+        response.setCode(20000);
+        List<ExamClazzroom> examClazzroom = examClazzroomMapper.selectList(new LambdaQueryWrapper<ExamClazzroom>()
+                .eq(ExamClazzroom::getClazzroomId, id)
+                .eq(ExamClazzroom::getIsDeleted,false)
+        );
+        ArrayList<Integer> list = new ArrayList<>();
+        examClazzroom.forEach(e->{
+            list.add(e.getExamId());
+        });
+        response.setExams(new ArrayList<>());
+        if (list.size()==0){
+            response.setError("该考场最近没有考试安排");
+            return response;
+        }
+        List<Exam> exams = examMapper.selectList(new LambdaQueryWrapper<Exam>().in(Exam::getId, list));
+        exams.forEach(e->{
+            ExamResponse examResponse = new ExamResponse();
+            response.getExams().add(examResponse);
+            BeanUtils.copyProperties(e, examResponse);
+            if (e.getType() == 0) {
+                ExamGrade examGrade = examGradeMapper.selectOne(new LambdaQueryWrapper<ExamGrade>().eq(ExamGrade::getExamId, e.getId()));
+                if (examGrade == null) {
+                    return;
+                }
+                Grade grade = gradeMapper.selectOne(new LambdaQueryWrapper<Grade>().eq(Grade::getId, examGrade.getGradeId()));
+                examResponse.setGradeName(grade.getName());
+                examResponse.setClazzName("");
+            } else {
+                List<ExamClazz> clazzList = examClazzMapper.selectList(new LambdaQueryWrapper<ExamClazz>().eq(ExamClazz::getExamId, e.getId()));
+                ArrayList<Integer> clazzIds = new ArrayList<>();
+                clazzList.forEach(ee -> {
+                    clazzIds.add(ee.getClazzId());
+                });
+                StringBuilder clazzStr = new StringBuilder("");
+                examResponse.setGradeName("");
+                if (clazzIds.size() == 0) {
+                    return;
+                }
+                clazzMapper.selectList(new LambdaQueryWrapper<Clazz>().in(Clazz::getId, clazzIds)).forEach(
+                        ee -> {
+                            clazzStr.append("[" + ee.getName() + "] ");
+                            if (examResponse.getGradeName().equals("")) {
+                                Grade grade = gradeMapper.selectOne(new LambdaQueryWrapper<Grade>().eq(Grade::getId, ee.getGradeId()));
+                                examResponse.setGradeName(grade.getName());
+                            }
+                        }
+                );
+                examResponse.setClazzName(clazzStr.toString());
+
+            }
+            List<ExamCourse> examCourses = examCourseMapper.selectList(new LambdaQueryWrapper<ExamCourse>().eq(ExamCourse::getExamId, e.getId()));
+            ArrayList<Integer> examCourseIds = new ArrayList<>();
+            examCourses.forEach(ee -> {
+                examCourseIds.add(ee.getCourseId());
+            });
+            StringBuilder courseStr = new StringBuilder("");
+            courseMapper.selectList(new LambdaQueryWrapper<Course>().in(Course::getId, examCourseIds)).forEach(
+                    ee -> {
+                        courseStr.append("[" + ee.getName() + "]");
+                    }
+            );
+            examResponse.setCourseName(courseStr.toString());
+
+            StringBuilder clazzRoom = new StringBuilder("");
+            List<ExamClazzroom> examClazzrooms = examClazzroomMapper.selectList(new LambdaQueryWrapper<ExamClazzroom>().eq(ExamClazzroom::getExamId, e.getId()));
+            ArrayList<Integer> clazzRoomIds = new ArrayList<>();
+            examClazzrooms.forEach(ee -> {
+                clazzRoomIds.add(ee.getClazzroomId());
+            });
+            clazzroomMapper.selectList(new LambdaQueryWrapper<Clazzroom>().in(Clazzroom::getId, clazzRoomIds)).forEach(ee -> {
+                clazzRoom.append("[" + ee.getName() + "]");
+            });
+            examResponse.setClazzroomName(clazzRoom.toString());
+        });
+        return response;
     }
 }
