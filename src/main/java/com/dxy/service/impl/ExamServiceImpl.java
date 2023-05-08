@@ -365,7 +365,9 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
         String headerString = "[ {label:'学号',prop:'number'},{label:'姓名',prop:'name'},";
         for (int i = 0; i < courses.size(); i++) {
             tableLabels.add(courses.get(i).getName());
-            headerString += "{label:" + "'" + courses.get(i).getName() + "',prop:'prop" + i + "'}";
+            headerString += "{label:" + "'" + courses.get(i).getName()+"平时分" + "',prop:'p" +i+ "'}";
+            headerString += ",{label:" + "'" + courses.get(i).getName()+"考试分" + "',prop:'k" +i+ "'}";
+            headerString += ",{label:" + "'" + courses.get(i).getName() +"评价"+ "',prop:'l"  +i+ "'}";
             if (i != courses.size() - 1) {
                 headerString += ",";
             }
@@ -389,7 +391,9 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                         .eq(Score::getStudentId, students.get(j).getId())
                         .eq(Score::getCourseId, courses.get(k).getId())
                 );
-                data += "prop" + k + ":'" + ((score == null || score.getScore() == null) ? "成绩未录入" : score.getScore()) + "'";
+                data += "p" + k + ":'" + ((score == null || score.getPscore() == null) ? "-" : score.getPscore()) + "'";
+                data += ",k" + k+ ":'" + ((score == null || score.getScore() == null) ? "-" : score.getScore()) + "'";
+                data += ",l" + k  + ":'" + ((score == null || score.getLevel() == null) ? "-" : score.getLevel()) + "'";
                 if (k != courses.size() - 1) {
                     data += ",";
                 }

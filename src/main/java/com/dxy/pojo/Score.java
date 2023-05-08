@@ -23,7 +23,7 @@ public class Score {
 
     private Integer score;
 
-    private Integer pScore;
+    private Integer pscore;
 
     private String level;
 }

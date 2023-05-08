@@ -32,4 +32,6 @@ public class ExamResponse{
     private String courseName;
 
     private String clazzroomName;
+    
+    private String teachers;
 }

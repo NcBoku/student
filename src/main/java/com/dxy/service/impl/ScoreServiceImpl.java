@@ -60,7 +60,8 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
         Integer studentId = request.getStudentId();
         Student student = studentMapper.selectOne(new LambdaQueryWrapper<Student>().eq(Student::getId, studentId));
         BeanUtils.copyProperties(request, score);
-        double s = score.getScore()*0.7+score.getPScore()*0.3;
+        if (score.getScore()!=null&&score.getPscore()!=null){
+        double s = score.getScore()*0.7+score.getPscore()*0.3;
         if (s>=90){
             score.setLevel("A");
         }else if (s>=80){
@@ -71,7 +72,7 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
             score.setLevel("D");
         }else{
             score.setLevel("E");
-        }
+        }}
         score.setClazzId(student.getClazzId());
         response.setCode(scoreMapper.insert(score) == 1 ? 20000 : 20001);
         return response;
@@ -150,7 +151,23 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
         response.setCode(20001);
         if(UserUtil.get(token).getType()==1){
             response.setCode(20000);
+
             scoreList.forEach(e->{
+                if (e.getScore()!=null&&e.getPscore()!=null){
+                    double s = e.getScore()*0.7+e.getPscore()*0.3;
+                    if (s>=90){
+                        e.setLevel("A");
+                    }else if (s>=80){
+                        e.setLevel("B");
+                    }else if (s>=70){
+                        e.setLevel("C");
+                    }else if (s>=60){
+                        e.setLevel("D");
+                    }else{
+                        e.setLevel("E");
+                    }
+                }
+
                 scoreMapper.update(e,new LambdaQueryWrapper<Score>().eq(Score::getId,e.getId()));
             });
         }
