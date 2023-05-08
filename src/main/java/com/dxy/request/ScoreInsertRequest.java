@@ -11,4 +11,6 @@ public class ScoreInsertRequest {
     private Integer courseId;
 
     private Integer score;
+
+    private Integer pScore;
 }

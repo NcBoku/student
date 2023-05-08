@@ -60,6 +60,18 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
         Integer studentId = request.getStudentId();
         Student student = studentMapper.selectOne(new LambdaQueryWrapper<Student>().eq(Student::getId, studentId));
         BeanUtils.copyProperties(request, score);
+        double s = score.getScore()*0.7+score.getPScore()*0.3;
+        if (s>=90){
+            score.setLevel("A");
+        }else if (s>=80){
+            score.setLevel("B");
+        }else if (s>=70){
+            score.setLevel("C");
+        }else if (s>=60){
+            score.setLevel("D");
+        }else{
+            score.setLevel("E");
+        }
         score.setClazzId(student.getClazzId());
         response.setCode(scoreMapper.insert(score) == 1 ? 20000 : 20001);
         return response;

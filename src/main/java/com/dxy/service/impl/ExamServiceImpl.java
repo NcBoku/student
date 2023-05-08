@@ -63,6 +63,9 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
     @Autowired
     private ExamClazzroomMapper examClazzroomMapper;
 
+    @Autowired
+    private ClazzroomMapper clazzroomMapper;
+
 
     @Override
     @Transactional
@@ -199,6 +202,17 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                                 }
                         );
                         examResponse.setCourseName(courseStr.toString());
+
+                        StringBuilder clazzRoom = new StringBuilder("");
+                        List<ExamClazzroom> examClazzrooms = examClazzroomMapper.selectList(new LambdaQueryWrapper<ExamClazzroom>().eq(ExamClazzroom::getExamId, e.getId()));
+                        ArrayList<Integer> clazzRoomIds = new ArrayList<>();
+                        examClazzrooms.forEach(ee -> {
+                            clazzRoomIds.add(ee.getClazzroomId());
+                        });
+                        clazzroomMapper.selectList(new LambdaQueryWrapper<Clazzroom>().in(Clazzroom::getId, clazzRoomIds)).forEach(ee -> {
+                            clazzRoom.append("[" + ee.getName() + "]");
+                        });
+                        examResponse.setClazzroomName(clazzRoom.toString());
                     }
             );
         }
@@ -208,6 +222,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
     @Override
     @Transactional
     public InsertResponse insert(ExamInsertRequest request, String token) {
+        System.out.println("test" + request.getTime() + " " + request.getEnd());
         User user = UserUtil.get(token);
         InsertResponse response = new InsertResponse();
         response.setCode(20001);
@@ -226,10 +241,13 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
 
         if (true) {
             response.setCode(20000);
+            response.setError(null);
             int count = 0;
             List<Student> ss = new ArrayList<>();
+            List<Clazz> cc = new ArrayList<>();
             if (request.getType() == 0) {
                 List<Clazz> clazz = clazzMapper.selectList(new LambdaQueryWrapper<Clazz>().eq(Clazz::getGradeId, request.getGradeId()));
+                cc = clazz;
                 ArrayList<Integer> clazzIds = new ArrayList<>();
                 clazz.forEach(e -> {
                     clazzIds.add(e.getId());
@@ -240,12 +258,23 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
             } else if (request.getType() == 1) {
                 List<Student> students = studentMapper.selectList(new LambdaQueryWrapper<Student>().in(Student::getClazzId, request.getClazzIds()));
                 ss = students;
+                cc = clazzMapper.selectList(new LambdaQueryWrapper<Clazz>().in(Clazz::getId, request.getClazzIds()));
                 count = students.size();
             }
             List<Clazzroom> restClazzroom = clazzroomService.getRestClazzroom(request.getTime(), request.getEnd());
 
+            List<Clazz> restClazz = clazzroomService.getNotRestClazz(request.getTime(), request.getEnd());
+
+            for (Clazz c1 : cc) {
+                for (Clazz c2 : restClazz) {
+                    if (c1.getId().equals(c2.getId())) {
+                        response.setError(c1.getName() + "在此时间段存在其他考试!!!");
+                        return response;
+                    }
+                }
+            }
+
             if (restClazzroom == null) {
-                response.setCode(0);
                 response.setError("该时间段没有空闲的教室");
                 return response;
             }
@@ -253,14 +282,13 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
             int max = 0, l = 0;
             for (int i = 0; i < restClazzroom.size(); i++) {
                 max += restClazzroom.get(i).getCount();
-                if (max > count) {
+                if (max >= count) {
                     l = i;
                     break;
                 }
             }
 
             if (max < count) {
-                response.setCode(0);
                 response.setError("该时间段没有足够的教室");
                 return response;
             }
@@ -273,7 +301,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
             exam.setType(request.getType());
             examMapper.insert(exam);
 
-            for (int i = 0; i < l; i++) {
+            for (int i = 0; i <= l; i++) {
                 ExamClazzroom examClazzroom = new ExamClazzroom();
                 examClazzroom.setStart(request.getTime());
                 examClazzroom.setEnd(request.getEnd());
@@ -471,6 +499,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
         User user = UserUtil.get(token);
         UpdateResponse response = new UpdateResponse();
         if (user != null && user.getType() == 0) {
+            examClazzroomMapper.delete(new LambdaQueryWrapper<ExamClazzroom>().in(ExamClazzroom::getExamId, ids));
             scoreMapper.delete(new LambdaQueryWrapper<Score>().in(Score::getExamId, ids));
             examGradeMapper.delete(new LambdaQueryWrapper<ExamGrade>().in(ExamGrade::getExamId, ids));
             examCourseMapper.delete(new LambdaQueryWrapper<ExamCourse>().in(ExamCourse::getExamId, ids));

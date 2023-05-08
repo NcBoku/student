@@ -22,4 +22,8 @@ public class Score {
     private Integer courseId;
 
     private Integer score;
+
+    private Integer pScore;
+
+    private String level;
 }

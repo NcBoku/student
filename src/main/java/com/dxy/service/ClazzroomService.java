@@ -14,4 +14,6 @@ import java.util.List;
 public interface ClazzroomService  extends IService<Clazzroom> {
     void updateInfo();
     List<Clazzroom> getRestClazzroom(Date start,Date end);
+    List<Clazz> getNotRestClazz(Date start,Date end);
+    List<Clazz> getRestTeacher(Date start,Date end );
 }
