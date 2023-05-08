@@ -6,24 +6,16 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.sql.Date;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Exam {
+public class Clazzroom {
     @TableId(type = IdType.AUTO)
     private Integer id;
 
     private String name;
 
-    private Date time;
+    private Integer count;
 
-    private Date end;
-
-    private String status;
-
-    private String remark;
-
-    private Integer type;
+    private Boolean used;
 }

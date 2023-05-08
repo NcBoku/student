@@ -1,5 +1,6 @@
 package com.dxy.pojo;
 
+
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.AllArgsConstructor;
@@ -11,19 +12,17 @@ import java.sql.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Exam {
+public class ExamClazzroom {
     @TableId(type = IdType.AUTO)
     private Integer id;
 
-    private String name;
+    private Integer clazzroomId;
 
-    private Date time;
+    private Integer examId;
+
+    private Date start;
 
     private Date end;
 
-    private String status;
-
-    private String remark;
-
-    private Integer type;
+    private Boolean isDeleted;
 }
