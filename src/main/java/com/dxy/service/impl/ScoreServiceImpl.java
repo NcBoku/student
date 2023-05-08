@@ -13,6 +13,7 @@ import com.dxy.util.UserUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,6 +53,7 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
     private ExamCourseMapper examCourseMapper;
 
     @Override
+    @Transactional
     public InsertResponse insert(ScoreInsertRequest request) {
         InsertResponse response = new InsertResponse();
         Score score = new Score();
@@ -64,6 +66,7 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
     }
 
     @Override
+    @Transactional
     public CourseGradeClazzScoreResponse courseClazzScore(String examId, String token) {
         User user = UserUtil.get(token);
         CourseGradeClazzScoreResponse response = new CourseGradeClazzScoreResponse();
@@ -129,6 +132,7 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
     }
 
     @Override
+    @Transactional
     public UpdateResponse update(List<Score> scoreList, String token) {
         UpdateResponse response = new UpdateResponse();
         response.setCode(20001);

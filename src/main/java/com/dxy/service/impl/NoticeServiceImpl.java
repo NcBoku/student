@@ -16,6 +16,7 @@ import com.dxy.service.NoticeService;
 import com.dxy.util.UserUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -28,6 +29,7 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
     private NoticeMapper noticeMapper;
 
     @Override
+    @Transactional
     public NoticePageResponse getPage(NoticeGetRequest request, String token) {
         Page page = new Page(request.getPage(), request.getSize());
         User user = UserUtil.get(token);
@@ -61,6 +63,7 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
     }
 
     @Override
+    @Transactional
     public UpdateResponse update(Notice notice, String token) {
         User user = UserUtil.get(token);
         UpdateResponse response = new UpdateResponse();
@@ -80,6 +83,7 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
     }
 
     @Override
+    @Transactional
     public InsertResponse insert(Notice notice, String token) {
         User user = UserUtil.get(token);
         InsertResponse response = new InsertResponse();
@@ -92,6 +96,7 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
     }
 
     @Override
+    @Transactional
     public UpdateResponse delete(List<Notice> notices, String token) {
         User user = UserUtil.get(token);
         UpdateResponse response = new UpdateResponse();

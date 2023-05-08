@@ -16,6 +16,7 @@ import com.dxy.util.UserUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +50,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
 
     @Override
+    @Transactional
     public StudentResponse info(String token) {
         User user = UserUtil.get(token);
         StudentResponse response = new StudentResponse();
@@ -68,6 +70,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     }
 
     @Override
+    @Transactional
     public UpdateResponse update(StudentUpdateRequest request, String token) {
         UpdateResponse response = new UpdateResponse();
         response.setCode(20000);
@@ -79,6 +82,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     }
 
     @Override
+    @Transactional
     public StudentPageResponse list(PageGetRequest request, String token) {
         Page<Student> studentPage = new Page<>(request.getPage(), request.getSize());
         StudentPageResponse response = new StudentPageResponse();
@@ -123,6 +127,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     }
 
     @Override
+    @Transactional
     public UpdateResponse insert(Student student, String token) {
         UpdateResponse response = new UpdateResponse();
         response.setCode(20001);
@@ -165,6 +170,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     }
 
     @Override
+    @Transactional
     public UpdateResponse delete(List<Student> student, String token) {
         UpdateResponse response = new UpdateResponse();
         response.setCode(20001);
@@ -189,6 +195,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     }
 
     @Override
+    @Transactional
     public UpdateResponse updateAll(Student student, String token) {
         UpdateResponse response = new UpdateResponse();
         response.setCode(20001);

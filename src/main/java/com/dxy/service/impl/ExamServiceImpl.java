@@ -13,6 +13,7 @@ import com.dxy.util.UserUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -57,6 +58,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
 
 
     @Override
+    @Transactional
     public ExamPageResponse list(Page<Exam> page, String token, String keyword) {
         User user = UserUtil.get(token);
         ExamPageResponse response = new ExamPageResponse();
@@ -197,6 +199,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
     }
 
     @Override
+    @Transactional
     public InsertResponse insert(ExamInsertRequest request, String token) {
         User user = UserUtil.get(token);
         InsertResponse response = new InsertResponse();
@@ -280,6 +283,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
     }
 
     @Override
+    @Transactional
     public ExamScoreResponse score(ExamScoreRequest request, String token) {
         User user = UserUtil.get(token);
         ExamScoreResponse response = new ExamScoreResponse();
@@ -338,6 +342,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
     }
 
     @Override
+    @Transactional
     public UpdateResponse update(ExamInsertRequest request, String token) {
         UpdateResponse response = new UpdateResponse();
         response.setCode(20001);
@@ -417,6 +422,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
     }
 
     @Override
+    @Transactional
     public UpdateResponse delete(List<Exam> id, String token) {
         ArrayList<Integer> ids = new ArrayList<>();
         for (Exam exam : id) {

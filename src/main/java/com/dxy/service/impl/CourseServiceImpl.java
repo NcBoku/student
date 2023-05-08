@@ -14,6 +14,7 @@ import com.dxy.service.CourseService;
 import com.dxy.util.UserUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,7 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
     private TeacherCourseMapper teacherCourseMapper;
 
     @Override
+    @Transactional
     public CoursePageResponse list(PageGetRequest request, String token) {
         Page<Course> coursePage = new Page<>(request.getPage(), request.getSize());
         User user = UserUtil.get(token);
@@ -62,6 +64,7 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
     }
 
     @Override
+    @Transactional
     public InsertResponse insert(Course course, String token) {
         InsertResponse response = new InsertResponse();
         response.setCode(20001);
@@ -74,6 +77,7 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
     }
 
     @Override
+    @Transactional
     public UpdateResponse update(Course course, String token) {
         UpdateResponse response = new UpdateResponse();
         response.setCode(20001);
@@ -86,6 +90,7 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
     }
 
     @Override
+    @Transactional
     public UpdateResponse delete(List<Course> course, String token) {
         UpdateResponse response = new UpdateResponse();
         response.setCode(20001);
@@ -102,6 +107,7 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
     }
 
     @Override
+    @Transactional
     public CoursePageResponse getCourseByExamId(Integer id, String token) {
         CoursePageResponse response = new CoursePageResponse();
         response.setCode(20001);

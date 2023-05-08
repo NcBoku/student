@@ -11,4 +11,6 @@ public class ClazzResponse {
     private Integer gradeId;
 
     private String name;
+
+    private String remark;
 }

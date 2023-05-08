@@ -15,4 +15,5 @@ public class Grade {
 
     private String name;
 
+    private String remark;
 }

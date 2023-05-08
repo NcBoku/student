@@ -16,4 +16,5 @@ public interface UserService extends IService<User> {
     UpdateResponse update(User user);
     UpdateResponse logout(String token);
     UpdateResponse updatePassword(@RequestBody UserPasswordUpdateRequest request, @RequestHeader("X-Token")String token);
+    boolean delete(String userId);
 }

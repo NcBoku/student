@@ -12,6 +12,7 @@ import com.dxy.util.UserUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 
@@ -39,6 +40,7 @@ public class ClazzServiceImpl extends ServiceImpl<ClazzMapper, Clazz> implements
 
 
     @Override
+    @Transactional
     public ClazzIdsResponse getClazzByGradeId(List<Integer> ids) {
         HashMap<Integer, List<Clazz>> map = new HashMap<>();
         if (ids.size()==0){
@@ -89,11 +91,14 @@ public class ClazzServiceImpl extends ServiceImpl<ClazzMapper, Clazz> implements
     }
 
     @Override
+    @Transactional
     public InsertResponse insert(Clazz clazz, String token) {
         User user = UserUtil.get(token);
         InsertResponse response = new InsertResponse();
         response.setCode(20001);
         if (user.getType() == 0) {
+            if (clazz.getRemark()==null||"".equals(clazz.getRemark()))
+            clazz.setRemark(gradeMapper.selectOne(new LambdaQueryWrapper<Grade>().eq(Grade::getId,clazz.getGradeId())).getName()+clazz.getName());
             if (clazzMapper.insert(clazz) == 1) {
                 response.setCode(20000);
             }
@@ -102,6 +107,7 @@ public class ClazzServiceImpl extends ServiceImpl<ClazzMapper, Clazz> implements
     }
 
     @Override
+    @Transactional
     public UpdateResponse update(Clazz clazz, String token) {
         User user = UserUtil.get(token);
         UpdateResponse response = new UpdateResponse();
@@ -115,6 +121,7 @@ public class ClazzServiceImpl extends ServiceImpl<ClazzMapper, Clazz> implements
     }
 
     @Override
+    @Transactional
     public UpdateResponse del(List<Clazz> clazz, String token) {
         User user = UserUtil.get(token);
         UpdateResponse response = new UpdateResponse();
@@ -132,6 +139,7 @@ public class ClazzServiceImpl extends ServiceImpl<ClazzMapper, Clazz> implements
     }
 
     @Override
+    @Transactional
     public ClazzPageResponse list(PageGetRequest request, String token) {
         Page<Clazz> p = new Page(request.getPage(), request.getSize());
         User user = UserUtil.get(token);
@@ -141,7 +149,11 @@ public class ClazzServiceImpl extends ServiceImpl<ClazzMapper, Clazz> implements
             LambdaQueryWrapper<Clazz> wrapper = new LambdaQueryWrapper<>();
             if (request.getKeyword() != null && !request.getKeyword().equals("")) {
                 wrapper.and(
-                        o -> o.like(Clazz::getName, request.getKeyword()).or().like(Clazz::getId, request.getKeyword())
+                        o -> o.like(Clazz::getName, request.getKeyword())
+                                .or()
+                                .like(Clazz::getId, request.getKeyword())
+                                .or()
+                                .like(Clazz::getRemark,request.getKeyword())
                 );
             }
             Page<Clazz> page = clazzMapper.selectPage(p, wrapper.orderByDesc(Clazz::getId));
@@ -158,6 +170,8 @@ public class ClazzServiceImpl extends ServiceImpl<ClazzMapper, Clazz> implements
         return response;
     }
 
+    @Override
+    @Transactional
     public ClazzPageResponse getClazzByGradeId(@PathVariable("id") Integer id, @RequestHeader("X-Token") String token) {
         ClazzPageResponse response = new ClazzPageResponse();
         response.setCode(20001);

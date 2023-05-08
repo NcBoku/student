@@ -15,6 +15,7 @@ import com.dxy.util.UserUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,12 +46,15 @@ public class GradeServiceImpl extends ServiceImpl<GradeMapper, Grade> implements
     private ClazzMapper clazzMapper;
 
     @Override
+    @Transactional
     public InsertResponse insert(GradeUpdateRequest grade, String token) {
         InsertResponse response = new InsertResponse();
         Grade g = new Grade();
         BeanUtils.copyProperties(grade, g);
         response.setCode(20001);
         if (UserUtil.get(token) != null && UserUtil.get(token).getType() == 0) {
+            if (grade.getRemark()==null||"".equals(grade.getRemark()))
+                g.setRemark(grade.getName());
             if (gradeMapper.insert(g) == 1) {
                 grade.getCourses().forEach(id -> {
                     GradeCourse gradeCourse = new GradeCourse();
@@ -65,6 +69,7 @@ public class GradeServiceImpl extends ServiceImpl<GradeMapper, Grade> implements
     }
 
     @Override
+    @Transactional
     public UpdateResponse update(GradeUpdateRequest grade, String token) {
         UpdateResponse response = new UpdateResponse();
         Grade g = new Grade();
@@ -86,6 +91,7 @@ public class GradeServiceImpl extends ServiceImpl<GradeMapper, Grade> implements
     }
 
     @Override
+    @Transactional
     public UpdateResponse delete(List<Grade> grade, String token) {
         UpdateResponse response = new UpdateResponse();
         response.setCode(20001);
@@ -102,6 +108,7 @@ public class GradeServiceImpl extends ServiceImpl<GradeMapper, Grade> implements
     }
 
     @Override
+    @Transactional
     public GradesResponse getGradesByExamId(String id, String token) {
         User user = UserUtil.get(token);
         GradesResponse response = new GradesResponse();
@@ -125,6 +132,7 @@ public class GradeServiceImpl extends ServiceImpl<GradeMapper, Grade> implements
     }
 
     @Override
+    @Transactional
     public GradePageResponse list(PageGetRequest request, String token) {
         Page<Grade> p = new Page(request.getPage(), request.getSize());
         User user = UserUtil.get(token);
@@ -135,7 +143,10 @@ public class GradeServiceImpl extends ServiceImpl<GradeMapper, Grade> implements
             if (request.getKeyword() != null && !request.getKeyword().equals("")) {
                 wrapper.like(Grade::getName, request.getKeyword())
                         .or()
-                        .like(Grade::getId, request.getKeyword());
+                        .like(Grade::getId, request.getKeyword())
+                        .or()
+                        .like(Grade::getRemark,request.getKeyword());
+
             }
             Page<Grade> page = gradeMapper.selectPage(p, wrapper.orderByDesc(Grade::getId));
             response.setCode(20000);

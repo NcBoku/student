@@ -9,4 +9,5 @@ public class GradeUpdateRequest {
     private Integer id;
     private String name;
     private List<Integer> courses;
+    private String remark;
 }

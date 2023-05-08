@@ -17,6 +17,7 @@ import com.dxy.util.UserUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +49,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
     }
 
     @Override
+    @Transactional
     public TeacherPageResponse list(PageGetRequest request, String token) {
         Page<Teacher> teacherPage = new Page<>(request.getPage(), request.getSize());
         TeacherPageResponse response = new TeacherPageResponse();
@@ -92,6 +94,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
     }
 
     @Override
+    @Transactional
     public InsertResponse insert(TeacherUpdateRequest request, String token) {
         InsertResponse response = new InsertResponse();
         response.setCode(20001);
@@ -120,15 +123,23 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
     }
 
     @Override
+    @Transactional
     public UpdateResponse delete(List<Teacher> teachers, String token) {
         UpdateResponse response = new UpdateResponse();
         response.setCode(20001);
         if (UserUtil.get(token).getType() == 0) {
             ArrayList<Integer> ids = new ArrayList<>();
+            ArrayList<Integer> uids = new ArrayList<>();
             teachers.forEach(e -> {
                 ids.add(e.getId());
             });
-            if (teacherMapper.delete(new LambdaQueryWrapper<Teacher>().in(Teacher::getId, ids)) == teachers.size()) {
+            List<Teacher> list = teacherMapper.selectList(new LambdaQueryWrapper<Teacher>().in(Teacher::getId, ids));
+            for (Teacher teacher : list) {
+                uids.add(teacher.getUserId());
+            }
+
+            if (teacherMapper.delete(new LambdaQueryWrapper<Teacher>().in(Teacher::getId, ids)) == teachers.size()&&
+            userMapper.delete(new LambdaQueryWrapper<User>().in(User::getId,uids))==uids.size()) {
                 response.setCode(20000);
             }
         }
@@ -136,6 +147,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
     }
 
     @Override
+    @Transactional
     public UpdateResponse updateAll(TeacherUpdateRequest request, String token) {
         UpdateResponse response = new UpdateResponse();
         response.setCode(20001);
@@ -158,6 +170,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
     }
 
     @Override
+    @Transactional
     public TeacherResponse info(String token) {
         TeacherResponse response = new TeacherResponse();
         response.setCode(20001);

@@ -16,6 +16,7 @@ import com.dxy.util.UserUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 
@@ -25,6 +26,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Autowired
     private UserMapper userMapper;
 
+    @Override
+    @Transactional
     public UserLoginResponse login(String account, String password, Integer type) {
         QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
         UserLoginResponse response = new UserLoginResponse();
@@ -48,6 +51,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @Transactional
     public UserInfoResponse info(String token) {
         UserInfoResponse response = new UserInfoResponse();
         User user = UserUtil.get(token);
@@ -64,12 +68,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @Transactional
     public UpdateResponse update(User user) {
+        UpdateResponse response = new UpdateResponse();
         userMapper.update(user, new LambdaUpdateWrapper<User>().eq(User::getId, user.getId()));
-        return null;
+        response.setCode(20000);
+        return response;
     }
 
     @Override
+    @Transactional
     public UpdateResponse logout(String token) {
         UserUtil.clear(token);
         UpdateResponse response = new UpdateResponse();
@@ -78,6 +86,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @Transactional
     public UpdateResponse updatePassword(UserPasswordUpdateRequest request, String token) {
         UpdateResponse response = new UpdateResponse();
         response.setCode(20001);
@@ -89,5 +98,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             }
         }
         return response;
+    }
+
+    @Override
+    public boolean delete(String userId) {
+        return userMapper.delete(new LambdaQueryWrapper<User>().eq(User::getId,userId))==1;
     }
 }

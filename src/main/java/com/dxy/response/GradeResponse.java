@@ -12,4 +12,6 @@ public class GradeResponse {
     private String name;
 
     private List<Course> courses;
+
+    private String remark;
 }
