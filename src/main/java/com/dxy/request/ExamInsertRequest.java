@@ -13,6 +13,8 @@ public class ExamInsertRequest {
 
     private Date time;
 
+    private Date end;
+
     private String remark;
 
     private Integer type;

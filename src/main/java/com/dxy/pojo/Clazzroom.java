@@ -17,5 +17,4 @@ public class Clazzroom {
 
     private Integer count;
 
-    private Boolean used;
 }

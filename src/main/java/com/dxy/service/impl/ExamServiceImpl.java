@@ -8,6 +8,7 @@ import com.dxy.pojo.*;
 import com.dxy.request.ExamInsertRequest;
 import com.dxy.request.ExamScoreRequest;
 import com.dxy.response.*;
+import com.dxy.service.ClazzroomService;
 import com.dxy.service.ExamService;
 import com.dxy.util.UserUtil;
 import org.springframework.beans.BeanUtils;
@@ -55,6 +56,12 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
 
     @Autowired
     private GradeCourseMapper gradeCourseMapper;
+
+    @Autowired
+    private ClazzroomService clazzroomService;
+
+    @Autowired
+    private ExamClazzroomMapper examClazzroomMapper;
 
 
     @Override
@@ -219,35 +226,79 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
 
         if (user != null && user.getType() == 0) {
             response.setCode(20000);
-            Exam exam = new Exam();
-            exam.setName(request.getName());
-            exam.setRemark(request.getRemark());
-            exam.setTime(request.getTime());
-            exam.setType(request.getType());
-            examMapper.insert(exam);
-
+            int count = 0;
+            List<Student> ss = new ArrayList<>();
             if (request.getType() == 0) {
-                ExamGrade examGrade = new ExamGrade();
-                examGrade.setExamId(exam.getId());
-                examGrade.setGradeId(request.getGradeId());
-                examGradeMapper.insert(examGrade);
                 List<Clazz> clazz = clazzMapper.selectList(new LambdaQueryWrapper<Clazz>().eq(Clazz::getGradeId, request.getGradeId()));
                 ArrayList<Integer> clazzIds = new ArrayList<>();
                 clazz.forEach(e -> {
                     clazzIds.add(e.getId());
                 });
                 List<Student> students = studentMapper.selectList(new LambdaQueryWrapper<Student>().in(Student::getClazzId, clazzIds));
-                students.forEach(e -> {
-                    request.getCourseIds().forEach(c -> {
-                        Score score = new Score();
-                        score.setClazzId(e.getClazzId());
-                        score.setScore(null);
-                        score.setExamId(exam.getId());
-                        score.setStudentId(e.getId());
-                        score.setCourseId(c);
-                        scoreMapper.insert(score);
-                    });
+                count = students.size();
+                ss = students;
+            } else if (request.getType() == 1) {
+                List<Student> students = studentMapper.selectList(new LambdaQueryWrapper<Student>().in(Student::getClazzId, request.getClazzIds()));
+                ss = students;
+                count = students.size();
+            }
+            List<Clazzroom> restClazzroom = clazzroomService.getRestClazzroom(request.getTime(), request.getEnd());
+
+            if (restClazzroom == null) {
+                response.setCode(0);
+                response.setError("该时间段没有空闲的教室");
+                return response;
+            }
+
+            int max = 0, l = 0;
+            for (int i = 0; i < restClazzroom.size(); i++) {
+                max += restClazzroom.get(i).getCount();
+                if (max > count) {
+                    l = i;
+                    break;
+                }
+            }
+
+            if (max < count) {
+                response.setCode(0);
+                response.setError("该时间段没有足够的教室");
+                return response;
+            }
+
+            Exam exam = new Exam();
+            exam.setName(request.getName());
+            exam.setRemark(request.getRemark());
+            exam.setTime(request.getTime());
+            exam.setEnd(request.getEnd());
+            exam.setType(request.getType());
+            examMapper.insert(exam);
+
+            for (int i = 0; i < l; i++) {
+                ExamClazzroom examClazzroom = new ExamClazzroom();
+                examClazzroom.setStart(request.getTime());
+                examClazzroom.setEnd(request.getEnd());
+                examClazzroom.setExamId(exam.getId());
+                examClazzroom.setClazzroomId(restClazzroom.get(i).getId());
+                examClazzroom.setIsDeleted(false);
+                examClazzroomMapper.insert(examClazzroom);
+            }
+
+            ss.forEach(e -> {
+                request.getCourseIds().forEach(c -> {
+                    Score score = new Score();
+                    score.setClazzId(e.getClazzId());
+                    score.setScore(null);
+                    score.setExamId(exam.getId());
+                    score.setStudentId(e.getId());
+                    score.setCourseId(c);
+                    scoreMapper.insert(score);
                 });
+            });
+            if (request.getType() == 0) {
+                ExamGrade examGrade = new ExamGrade();
+                examGrade.setExamId(exam.getId());
+                examGrade.setGradeId(request.getGradeId());
+                examGradeMapper.insert(examGrade);
             } else if (request.getType() == 1) {
                 request.getClazzIds().forEach(
                         id -> {
@@ -257,19 +308,8 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                             examClazzMapper.insert(examClazz);
                         }
                 );
-                List<Student> students = studentMapper.selectList(new LambdaQueryWrapper<Student>().in(Student::getClazzId, request.getClazzIds()));
-                students.forEach(e -> {
-                    request.getCourseIds().forEach(c -> {
-                        Score score = new Score();
-                        score.setClazzId(e.getClazzId());
-                        score.setScore(null);
-                        score.setExamId(exam.getId());
-                        score.setStudentId(e.getId());
-                        score.setCourseId(c);
-                        scoreMapper.insert(score);
-                    });
-                });
             }
+
             request.getCourseIds().forEach(
                     id -> {
                         ExamCourse examCourse = new ExamCourse();

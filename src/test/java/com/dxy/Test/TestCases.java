@@ -7,10 +7,7 @@ import com.dxy.pojo.User;
 import com.dxy.request.ExamScoreRequest;
 import com.dxy.request.StudentUpdateRequest;
 import com.dxy.response.ExamPageResponse;
-import com.dxy.service.ClazzService;
-import com.dxy.service.ExamService;
-import com.dxy.service.StudentService;
-import com.dxy.service.UserService;
+import com.dxy.service.*;
 import com.dxy.util.UserUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +32,12 @@ public class TestCases {
     @Autowired
     private ExamService examService;
 
+    @Autowired
+    private ClazzroomService clazzroomService;
+
     @Test
     public void test10() {
-
+        System.out.println(clazzroomService.getRestClazzroom(null,null));
 
     }
 }
