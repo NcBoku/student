@@ -99,7 +99,7 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
                 .eq(ExamCourse::getExamId, examId)
                 .in(ExamCourse::getCourseId, cids)
         );
-
+        ArrayList<Integer> sids = new ArrayList<>();
         examCourses.forEach(
                 t -> {
                     Course course = courseMapper.selectOne(new LambdaQueryWrapper<Course>().eq(Course::getId, t.getCourseId()));
@@ -123,7 +123,7 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
                                             .eq(Score::getCourseId, t.getCourseId())
                                             .eq(Score::getClazzId, c.getId())
                                     );
-                                    ArrayList<Integer> sids = new ArrayList<>();
+
                                     scoreList.forEach(s -> {
                                         sids.add(s.getStudentId());
                                     });

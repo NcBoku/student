@@ -411,6 +411,7 @@ public class ClazzroomServiceImpl extends ServiceImpl<ClazzroomMapper, Clazzroom
                 }
             }
         });
+
         LambdaQueryWrapper<ExamClazzroom> examClazzroomLambdaQueryWrapper = new LambdaQueryWrapper<>();
         if (ecids.size() == 0) {
             UserExamClazzroomPageResponse response = new UserExamClazzroomPageResponse();
