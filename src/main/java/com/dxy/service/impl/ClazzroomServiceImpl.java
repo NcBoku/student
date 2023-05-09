@@ -215,6 +215,8 @@ public class ClazzroomServiceImpl extends ServiceImpl<ClazzroomMapper, Clazzroom
                 .eq(ExamClazzroom::getClazzroomId, id)
                 .eq(ExamClazzroom::getIsDeleted, false)
         );
+        Clazzroom clazzroom = clazzroomMapper.selectOne(new LambdaQueryWrapper<Clazzroom>().eq(Clazzroom::getId, id));
+        response.setClazzRoom(clazzroom);
         ArrayList<Integer> list = new ArrayList<>();
         examClazzroom.forEach(e -> {
             list.add(e.getExamId());
@@ -323,8 +325,8 @@ public class ClazzroomServiceImpl extends ServiceImpl<ClazzroomMapper, Clazzroom
     @Transactional
     @Override
     public UpdateResponse delete(Integer id) {
-         examClazzroomMapper.delete(new LambdaQueryWrapper<ExamClazzroom>().eq(ExamClazzroom::getClazzroomId, id));
-         clazzroomMapper.delete(new LambdaQueryWrapper<Clazzroom>().eq(Clazzroom::getId, id));
+        examClazzroomMapper.delete(new LambdaQueryWrapper<ExamClazzroom>().eq(ExamClazzroom::getClazzroomId, id));
+        clazzroomMapper.delete(new LambdaQueryWrapper<Clazzroom>().eq(Clazzroom::getId, id));
         UpdateResponse response = new UpdateResponse();
         response.setCode(20000);
         response.setError("删除成功");
