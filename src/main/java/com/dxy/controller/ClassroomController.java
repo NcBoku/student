@@ -18,17 +18,17 @@ public class ClassroomController {
     private ClazzroomService clazzroomService;
 
     @PostMapping("/insert")
-    public InsertResponse insert(Clazzroom clazzroom){
+    public InsertResponse insert(@RequestBody Clazzroom clazzroom){
         return clazzroomService.insert(clazzroom);
     }
 
-    @PostMapping("/del/{id}")
-    public UpdateResponse delete(@PathVariable("id")Integer id){
+    @PostMapping("/del")
+    public UpdateResponse delete(@RequestBody List<Integer>  id){
         return clazzroomService.delete(id);
     }
 
     @PostMapping("/update")
-    public UpdateResponse update(Clazzroom clazzroom){
+    public UpdateResponse update(@RequestBody Clazzroom clazzroom){
         return clazzroomService.update(clazzroom);
     }
 
@@ -40,6 +40,16 @@ public class ClassroomController {
     @PostMapping("/list/{id}")
     public ClazzroomResponse info(@PathVariable("id") Integer id){
         return clazzroomService.getInfo(id);
+    }
+
+    @PostMapping("/student/{id}")
+    public UserExamClazzroomPageResponse student(@RequestBody PageGetRequest request,@PathVariable("id") Integer id){
+        return clazzroomService.student(request,id);
+    }
+
+    @PostMapping("/teacher/{id}")
+    public UserExamClazzroomPageResponse teacher(@RequestBody PageGetRequest request,@PathVariable("id") Integer id){
+        return clazzroomService.teacher(request,id);
     }
 
 }

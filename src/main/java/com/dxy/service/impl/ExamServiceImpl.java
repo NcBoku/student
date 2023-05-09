@@ -439,11 +439,11 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                 count = students.size();
             }
             List<Clazzroom> restClazzroom = clazzroomService.getRestClazzroom(request.getTime(), request.getEnd());
-
+            System.out.println("rest clazz room"+restClazzroom);
             List<Clazz> restClazz = clazzroomService.getNotRestClazz(request.getTime(), request.getEnd());
-
+            System.out.println("not rest clazz"+restClazz);
             List<Teacher> notRestTeacher = clazzroomService.getNotRestTeacher(request.getTime(), request.getEnd());
-
+            System.out.println("not rest teachers"+notRestTeacher);
             ArrayList<Integer> tids = new ArrayList<>();
 
             notRestTeacher.forEach(e -> {
@@ -451,7 +451,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
             });
 
             List<Teacher> restTeachers = tids.size() == 0 ? teacherMapper.selectList(null) :
-                    teacherMapper.selectList(new LambdaQueryWrapper<Teacher>().in(Teacher::getId, tids));
+                    teacherMapper.selectList(new LambdaQueryWrapper<Teacher>().notIn(Teacher::getId, tids));
 
             if (restTeachers.size() == 0) {
                 response.setError("该时间段无空闲的监考教师");

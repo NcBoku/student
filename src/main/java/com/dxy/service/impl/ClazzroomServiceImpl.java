@@ -9,6 +9,7 @@ import com.dxy.request.PageGetRequest;
 import com.dxy.response.*;
 import com.dxy.service.ClazzService;
 import com.dxy.service.ClazzroomService;
+import com.dxy.util.UserUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -61,6 +62,9 @@ public class ClazzroomServiceImpl extends ServiceImpl<ClazzroomMapper, Clazzroom
 
     @Autowired
     private ClazzroomMapper clazzroomMapper;
+
+    @Autowired
+    private UserMapper userMapper;
 
 
     @Transactional
@@ -296,9 +300,15 @@ public class ClazzroomServiceImpl extends ServiceImpl<ClazzroomMapper, Clazzroom
             teacherMapper.selectList(new LambdaQueryWrapper<Teacher>().in(Teacher::getId, tids)).forEach(ee -> {
                 teacherNames.append(ee.getName() + ",");
             });
-            List<Student> students = studentMapper.selectList(new LambdaQueryWrapper<Student>().in(Student::getId, sids));
+            List<Student> students = studentMapper.selectList(new LambdaQueryWrapper<Student>().in(Student::getId, sids).orderByDesc(Student::getId));
+            ArrayList<StudentResponse> studentResponses = new ArrayList<>();
             students.forEach(ee -> {
                 studentNames.append(ee.getName() + ",");
+                Clazz clazz = clazzMapper.selectOne(new LambdaQueryWrapper<Clazz>().eq(Clazz::getId, ee.getClazzId()));
+                StudentResponse studentResponse = new StudentResponse();
+                BeanUtils.copyProperties(ee, studentResponse);
+                studentResponse.setClazzName(clazz.getName());
+                studentResponses.add(studentResponse);
             });
             clazzroomMapper.selectList(new LambdaQueryWrapper<Clazzroom>().in(Clazzroom::getId, clazzRoomIds)).forEach(ee -> {
                 clazzRoom.append(ee.getName() + ",");
@@ -309,7 +319,7 @@ public class ClazzroomServiceImpl extends ServiceImpl<ClazzroomMapper, Clazzroom
             examResponse.setClazzroomName(clazzRoom.toString());
             studentNames.deleteCharAt(studentNames.length() - 1);
             examResponse.setStudentNames(studentNames.toString());
-            examResponse.setStudents(students);
+            examResponse.setStudents(studentResponses);
         });
         return response;
     }
@@ -317,7 +327,20 @@ public class ClazzroomServiceImpl extends ServiceImpl<ClazzroomMapper, Clazzroom
     @Transactional
     @Override
     public ClazzroomPageResponse getList(PageGetRequest request) {
-        Page<Clazzroom> page = clazzroomMapper.selectPage(new Page<Clazzroom>(request.getPage(), request.getSize()), new LambdaQueryWrapper<Clazzroom>().orderByDesc(Clazzroom::getId));
+
+        Page<Clazzroom> page = null;
+        if (request.getKeyword() != null && !"".equals(request.getKeyword())) {
+            page = clazzroomMapper.selectPage(new Page<Clazzroom>(request.getPage(), request.getSize()), new LambdaQueryWrapper<Clazzroom>()
+                    .orderByAsc(Clazzroom::getId)
+                    .and(
+                            o -> o.like(Clazzroom::getName, request.getKeyword())
+                                    .or()
+                                    .like(Clazzroom::getLocation, request.getKeyword())
+                    )
+            );
+        } else {
+            page = clazzroomMapper.selectPage(new Page<Clazzroom>(request.getPage(), request.getSize()), new LambdaQueryWrapper<Clazzroom>().orderByAsc(Clazzroom::getId));
+        }
         ClazzroomPageResponse response = new ClazzroomPageResponse();
         response.setTotal((int) page.getTotal());
         response.setCode(20000);
@@ -343,18 +366,221 @@ public class ClazzroomServiceImpl extends ServiceImpl<ClazzroomMapper, Clazzroom
         UpdateResponse response = new UpdateResponse();
         response.setCode(20000);
         response.setError(clazzroomMapper.update(clazzroom, new LambdaQueryWrapper<Clazzroom>().eq(Clazzroom::getId, clazzroom.getId())) == 1 ?
-                "插入成功" : "插入失败");
+                "修改" : "修改");
         return response;
     }
 
     @Transactional
-    @Override
-    public UpdateResponse delete(Integer id) {
+    public UpdateResponse deleteOne(Integer id) {
+        List<ExamClazzroom> examClazzrooms = examClazzroomMapper.selectList(new LambdaQueryWrapper<ExamClazzroom>().eq(ExamClazzroom::getClazzroomId, id));
+        ArrayList<Integer> eids = new ArrayList<>();
+        examClazzrooms.forEach(e -> {
+            eids.add(e.getExamId());
+        });
         examClazzroomMapper.delete(new LambdaQueryWrapper<ExamClazzroom>().eq(ExamClazzroom::getClazzroomId, id));
         clazzroomMapper.delete(new LambdaQueryWrapper<Clazzroom>().eq(Clazzroom::getId, id));
         UpdateResponse response = new UpdateResponse();
         response.setCode(20000);
         response.setError("删除成功");
+        return del(eids);
+    }
+
+    @Transactional
+    @Override
+    public UpdateResponse delete(List<Integer> id) {
+        for (Integer integer : id) {
+            deleteOne(integer);
+        }
+        UpdateResponse response = new UpdateResponse();
+        response.setCode(20000);
+        response.setError("删除成功");
+        return response;
+    }
+
+    @Override
+    public UserExamClazzroomPageResponse student(PageGetRequest request, Integer id) {
+        Student student = studentMapper.selectOne(new LambdaQueryWrapper<Student>().eq(Student::getUserId, id));
+        int iid = student.getId();
+        ArrayList<Integer> ecids = new ArrayList<>();
+        examClazzroomMapper.selectList(null).forEach(e -> {
+            for (String s : e.getStudents().split(",")) {
+                int i = Integer.parseInt(s);
+                System.out.println("学生" + iid + " 解析出的" + i);
+                if (iid == i) {
+                    ecids.add(e.getId());
+                }
+            }
+        });
+        LambdaQueryWrapper<ExamClazzroom> examClazzroomLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        if (ecids.size() == 0) {
+            UserExamClazzroomPageResponse response = new UserExamClazzroomPageResponse();
+            response.setCode(20000);
+            return response;
+        }
+        examClazzroomLambdaQueryWrapper
+                .in(ExamClazzroom::getId, ecids)
+                .orderByDesc(ExamClazzroom::getStart);
+        Page<ExamClazzroom> page = examClazzroomMapper
+                .selectPage(new Page<>(request.getPage(), request.getSize()), examClazzroomLambdaQueryWrapper);
+        System.out.println("学生有关系的考试");
+        System.out.println(page.getRecords());
+        UserExamClazzroomPageResponse response = new UserExamClazzroomPageResponse();
+        response.setTotal((int) page.getTotal());
+        response.setCode(20000);
+        response.setResponse(new ArrayList<>());
+        page.getRecords().forEach(e -> {
+            UserExamClazzroomResponse r = new UserExamClazzroomResponse();
+
+            r.setExamName(examMapper.selectOne(new LambdaQueryWrapper<Exam>().eq(Exam::getId, e.getExamId())).getName());
+            r.setEnd(e.getEnd());
+            r.setStart(e.getStart());
+            Clazzroom clazzroom = clazzroomMapper.selectOne(new LambdaQueryWrapper<Clazzroom>().eq(Clazzroom::getId, e.getClazzroomId()));
+            r.setClazzroomName(clazzroom.getName());
+            r.setLocation(clazzroom.getLocation());
+
+            StringBuilder courseNames = new StringBuilder("");
+            ArrayList<Integer> cid = new ArrayList<>();
+            examCourseMapper.selectList(new LambdaQueryWrapper<ExamCourse>().eq(ExamCourse::getExamId, e.getExamId())).forEach(ee -> {
+                cid.add(ee.getCourseId());
+            });
+            courseMapper.selectList(new LambdaQueryWrapper<Course>().in(Course::getId, cid)).forEach(ee -> {
+                courseNames.append(ee.getName() + ",");
+            });
+            courseNames.deleteCharAt(courseNames.length() - 1);
+            r.setCourses(courseNames.toString());
+
+
+            ArrayList<Integer> sid = new ArrayList<>();
+            for (String s : e.getStudents().split(",")) {
+                if (Integer.parseInt(s) == student.getId()) {
+                    sid.add(Integer.parseInt(s));
+                }
+            }
+            List<Student> students = studentMapper.selectList(new LambdaQueryWrapper<Student>().in(Student::getId, sid).orderByDesc(Student::getId));
+            r.setStudents(new ArrayList<>());
+            students.forEach(ee -> {
+                StudentResponse studentResponse = new StudentResponse();
+                BeanUtils.copyProperties(ee, studentResponse);
+                studentResponse.setClazzName(clazzMapper.selectOne(new LambdaQueryWrapper<Clazz>().eq(Clazz::getId, ee.getClazzId())).getName());
+                r.getStudents().add(studentResponse);
+            });
+
+            ArrayList<Integer> tid = new ArrayList<>();
+            StringBuilder teacherNames = new StringBuilder("");
+            for (String s : e.getTeachers().split(",")) {
+                tid.add(Integer.parseInt(s));
+            }
+            List<Teacher> teachers = teacherMapper.selectList(new LambdaQueryWrapper<Teacher>().in(Teacher::getId, tid));
+            teachers.forEach(ee -> {
+                teacherNames.append(ee.getName() + ",");
+            });
+            teacherNames.deleteCharAt(teacherNames.length() - 1);
+
+            r.setTeachers(teacherNames.toString());
+
+            response.getResponse().add(r);
+        });
+        return response;
+    }
+
+    @Override
+    public UserExamClazzroomPageResponse teacher(PageGetRequest request, Integer id) {
+        Teacher teacher = teacherMapper.selectOne(new LambdaQueryWrapper<Teacher>().eq(Teacher::getUserId, id));
+        int iid = teacher.getId();
+        ArrayList<Integer> ecids = new ArrayList<>();
+        examClazzroomMapper.selectList(null).forEach(e -> {
+            for (String s : e.getTeachers().split(",")) {
+                int i = Integer.parseInt(s);
+                System.out.println("老师" + iid + " 解析出的" + i);
+                if (iid == i) {
+                    ecids.add(e.getId());
+                }
+            }
+        });
+        LambdaQueryWrapper<ExamClazzroom> examClazzroomLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        if (ecids.size() == 0) {
+            UserExamClazzroomPageResponse response = new UserExamClazzroomPageResponse();
+            response.setCode(20000);
+            return response;
+        }
+        examClazzroomLambdaQueryWrapper
+                .in(ExamClazzroom::getId, ecids)
+                .orderByDesc(ExamClazzroom::getStart);
+        Page<ExamClazzroom> page = examClazzroomMapper
+                .selectPage(new Page<>(request.getPage(), request.getSize()), examClazzroomLambdaQueryWrapper);
+        System.out.println("老师有关系的考试");
+        System.out.println(page.getRecords());
+        UserExamClazzroomPageResponse response = new UserExamClazzroomPageResponse();
+        response.setTotal((int) page.getTotal());
+        response.setCode(20000);
+        response.setResponse(new ArrayList<>());
+        page.getRecords().forEach(e -> {
+            UserExamClazzroomResponse r = new UserExamClazzroomResponse();
+
+            r.setExamName(examMapper.selectOne(new LambdaQueryWrapper<Exam>().eq(Exam::getId, e.getExamId())).getName());
+            r.setEnd(e.getEnd());
+            r.setStart(e.getStart());
+            Clazzroom clazzroom = clazzroomMapper.selectOne(new LambdaQueryWrapper<Clazzroom>().eq(Clazzroom::getId, e.getClazzroomId()));
+            r.setClazzroomName(clazzroom.getName());
+            r.setLocation(clazzroom.getLocation());
+
+            StringBuilder courseNames = new StringBuilder("");
+            ArrayList<Integer> cid = new ArrayList<>();
+            examCourseMapper.selectList(new LambdaQueryWrapper<ExamCourse>().eq(ExamCourse::getExamId, e.getExamId())).forEach(ee -> {
+                cid.add(ee.getCourseId());
+            });
+            courseMapper.selectList(new LambdaQueryWrapper<Course>().in(Course::getId, cid)).forEach(ee -> {
+                courseNames.append(ee.getName() + ",");
+            });
+            courseNames.deleteCharAt(courseNames.length() - 1);
+            r.setCourses(courseNames.toString());
+
+
+            ArrayList<Integer> sid = new ArrayList<>();
+            for (String s : e.getStudents().split(",")) {
+                sid.add(Integer.parseInt(s));
+            }
+            List<Student> students = studentMapper.selectList(new LambdaQueryWrapper<Student>().in(Student::getId, sid).orderByDesc(Student::getId));
+            r.setStudents(new ArrayList<>());
+            students.forEach(ee -> {
+                StudentResponse studentResponse = new StudentResponse();
+                BeanUtils.copyProperties(ee, studentResponse);
+                studentResponse.setClazzName(clazzMapper.selectOne(new LambdaQueryWrapper<Clazz>().eq(Clazz::getId, ee.getClazzId())).getName());
+                r.getStudents().add(studentResponse);
+            });
+
+            ArrayList<Integer> tid = new ArrayList<>();
+            StringBuilder teacherNames = new StringBuilder("");
+            for (String s : e.getTeachers().split(",")) {
+                tid.add(Integer.parseInt(s));
+            }
+            List<Teacher> teachers = teacherMapper.selectList(new LambdaQueryWrapper<Teacher>().in(Teacher::getId, tid));
+            teachers.forEach(ee -> {
+                teacherNames.append(ee.getName() + ",");
+            });
+            teacherNames.deleteCharAt(teacherNames.length() - 1);
+
+            r.setTeachers(teacherNames.toString());
+
+            response.getResponse().add(r);
+        });
+        return response;
+    }
+
+    @Transactional
+    public UpdateResponse del(List<Integer> ids) {
+        if (ids.size() == 0) {
+            return null;
+        }
+        UpdateResponse response = new UpdateResponse();
+        examClazzroomMapper.delete(new LambdaQueryWrapper<ExamClazzroom>().in(ExamClazzroom::getExamId, ids));
+        scoreMapper.delete(new LambdaQueryWrapper<Score>().in(Score::getExamId, ids));
+        examGradeMapper.delete(new LambdaQueryWrapper<ExamGrade>().in(ExamGrade::getExamId, ids));
+        examCourseMapper.delete(new LambdaQueryWrapper<ExamCourse>().in(ExamCourse::getExamId, ids));
+        examClazzMapper.delete(new LambdaQueryWrapper<ExamClazz>().in(ExamClazz::getExamId, ids));
+        examMapper.delete(new LambdaQueryWrapper<Exam>().in(Exam::getId, ids));
+        response.setCode(20000);
+
         return response;
     }
 }

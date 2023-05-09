@@ -9,6 +9,7 @@ import com.dxy.pojo.Teacher;
 import com.dxy.request.PageGetRequest;
 import com.dxy.response.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.Date;
 import java.util.List;
@@ -23,5 +24,7 @@ public interface ClazzroomService  extends IService<Clazzroom> {
     ClazzroomPageResponse getList(PageGetRequest request);
     InsertResponse insert(Clazzroom clazzroom);
     UpdateResponse update(Clazzroom clazzroom);
-    UpdateResponse delete(Integer id);
+    UpdateResponse delete(List<Integer>  id);
+    UserExamClazzroomPageResponse student(PageGetRequest request,Integer id);
+    UserExamClazzroomPageResponse teacher(PageGetRequest request,Integer id);
 }

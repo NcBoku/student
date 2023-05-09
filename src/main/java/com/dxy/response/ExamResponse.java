@@ -39,7 +39,7 @@ public class ExamResponse{
 
     private String studentNames;
 
-    private List<Student> students;
+    private List<StudentResponse> students;
     
     private String teachers;
 }
