@@ -38,7 +38,13 @@ public class TestCases {
 
     @Test
     public void test10() {
-
-
+        String s="a";
+        String b="a,b,c";
+        for (String s1 : s.split(",")) {
+            System.out.println(s1);
+        }
+        for (String s1 : b.split(",")) {
+            System.out.println(s1);
+        }
     }
 }

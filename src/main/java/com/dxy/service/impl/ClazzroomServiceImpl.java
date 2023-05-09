@@ -56,9 +56,6 @@ public class ClazzroomServiceImpl extends ServiceImpl<ClazzroomMapper, Clazzroom
     private GradeCourseMapper gradeCourseMapper;
 
     @Autowired
-    private ClazzroomService clazzroomService;
-
-    @Autowired
     private ExamClazzroomMapper examClazzroomMapper;
 
     @Autowired
@@ -162,9 +159,50 @@ public class ClazzroomServiceImpl extends ServiceImpl<ClazzroomMapper, Clazzroom
         return clazzes;
     }
 
+    @Transactional
     @Override
-    public List<Clazz> getRestTeacher(Date start, Date end) {
-        return null;
+    public List<Teacher> getNotRestTeacher(Date start, Date end) {
+        List<ExamClazzroom> usedClazzroom = examClazzroomMapper.selectList(new LambdaQueryWrapper<ExamClazzroom>().
+                eq(ExamClazzroom::getIsDeleted, false)
+                .and(
+                        o -> o.and(
+                                o1 -> o1.le(ExamClazzroom::getStart, start)
+                                        .ge(ExamClazzroom::getEnd, end)
+                        ).or(
+                                o1 -> o1.ge(ExamClazzroom::getStart, start)
+                                        .ge(ExamClazzroom::getEnd,end)
+                                        .le(ExamClazzroom::getStart, end)
+                        ).or(
+                                o1 -> o1.le(ExamClazzroom::getStart, start)
+                                        .ge(ExamClazzroom::getEnd,start)
+                                        .le(ExamClazzroom::getEnd, end)
+                        ).or(
+                                o1 -> o1.ge(ExamClazzroom::getStart, start)
+                                        .le(ExamClazzroom::getEnd, end)
+                        )
+                )
+        );
+
+        List<Integer> ids = new ArrayList<>();
+        usedClazzroom.forEach(
+                e -> {
+                    ids.add(e.getExamId());
+                }
+        );
+        if (ids.size() == 0) {
+            return new ArrayList<>();
+        }
+
+        ids.clear();
+        usedClazzroom.forEach(e->{
+            String[] split = e.getTeachers().split(",");
+            for (String s : split) {
+                ids.add(Integer.parseInt(s));
+            }
+        });
+
+        List<Teacher> teachers = teacherMapper.selectList(new LambdaQueryWrapper<Teacher>().in(Teacher::getId, ids));
+        return teachers;
     }
 
     @Override
