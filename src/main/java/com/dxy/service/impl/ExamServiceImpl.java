@@ -230,6 +230,168 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
     }
 
     @Override
+    public ExamPageResponse plan(Page<Exam> page, String token, String keyword) {
+        User user = UserUtil.get(token);
+        ExamPageResponse response = new ExamPageResponse();
+        response.setCode(20001);
+
+        if (user != null) {
+            ArrayList<Integer> examIds = new ArrayList<>();
+            ArrayList<Integer> courseIds = new ArrayList<>();
+            response.setCode(20000);
+            response.setTotalPage(0);
+            Page<Exam> examPage = null;
+            if (user.getType() == 2) {
+                Student student = studentMapper.selectOne(new LambdaQueryWrapper<Student>().eq(Student::getUserId, user.getId()));
+                List<ExamGrade> examGrades = examGradeMapper.selectList(new LambdaQueryWrapper<ExamGrade>().eq(ExamGrade::getGradeId, student.getGradeId()));
+                examGrades.forEach(e -> {
+                    examIds.add(e.getExamId());
+                });
+                List<ExamClazz> examClazz = examClazzMapper.selectList(new LambdaQueryWrapper<ExamClazz>().eq(ExamClazz::getClazzId, student.getClazzId()));
+                examClazz.forEach(e -> {
+                    examIds.add(e.getExamId());
+                });
+                if (examIds.size() == 0) {
+                    return response;
+                }
+                LambdaQueryWrapper<Exam> wrapper = new LambdaQueryWrapper<>();
+                if (keyword != null && !keyword.equals("")) {
+                    wrapper.ge(Exam::getTime,new Date(System.currentTimeMillis()))
+                            .and(
+                            o -> o.like(Exam::getId, keyword)
+                                    .or()
+                                    .like(Exam::getName, keyword)
+                                    .or()
+                                    .like(Exam::getRemark, keyword)
+                    );
+
+                }
+                examPage = examMapper.selectPage(page, wrapper.in(Exam::getId, examIds));
+            } else if (user.getType() == 1) {
+                Teacher teacher = teacherMapper.selectOne(new LambdaQueryWrapper<Teacher>().eq(Teacher::getUserId, user.getId()));
+                List<TeacherCourse> teacherCourses = teacherCourseMapper.selectList(new LambdaQueryWrapper<TeacherCourse>().eq(TeacherCourse::getTeacherId, teacher.getId()));
+                teacherCourses.forEach(e -> {
+                    courseIds.add(e.getCourseId());
+                });
+                response.setExams(new ArrayList<>());
+                if (courseIds.size() == 0) {
+                    return response;
+                }
+                List<ExamCourse> examCourses = examCourseMapper.selectList(new LambdaQueryWrapper<ExamCourse>().in(ExamCourse::getCourseId, courseIds));
+                examCourses.forEach(
+                        e -> {
+                            examIds.add(e.getExamId());
+                        }
+                );
+                if (examIds.size() == 0) {
+                    return response;
+                }
+                LambdaQueryWrapper<Exam> wrapper = new LambdaQueryWrapper<>();
+                if (keyword != null && !keyword.equals("")) {
+                    wrapper.and(
+                            o -> o.like(Exam::getId, keyword)
+                                    .or()
+                                    .like(Exam::getName, keyword)
+                                    .or()
+                                    .like(Exam::getRemark, keyword)
+                    );
+
+                }
+                examPage = examMapper.selectPage(page, wrapper.in(Exam::getId, examIds));
+            } else {
+                LambdaQueryWrapper<Exam> wrapper = new LambdaQueryWrapper<>();
+                if (keyword != null && !keyword.equals("")) {
+                    wrapper.and(
+                            o -> o.like(Exam::getId, keyword)
+                                    .or()
+                                    .like(Exam::getName, keyword)
+                                    .or()
+                                    .like(Exam::getRemark, keyword)
+                    );
+
+                }
+                examPage = examMapper.selectPage(page, wrapper.orderByDesc(Exam::getTime));
+            }
+
+
+            response.setExams(new ArrayList<>());
+            response.setTotalPage((int) examPage.getTotal());
+            examPage.getRecords().forEach(
+                    e -> {
+                        ExamResponse examResponse = new ExamResponse();
+                        response.getExams().add(examResponse);
+                        BeanUtils.copyProperties(e, examResponse);
+                        if (e.getType() == 0) {
+                            ExamGrade examGrade = examGradeMapper.selectOne(new LambdaQueryWrapper<ExamGrade>().eq(ExamGrade::getExamId, e.getId()));
+                            if (examGrade == null) {
+                                return;
+                            }
+                            Grade grade = gradeMapper.selectOne(new LambdaQueryWrapper<Grade>().eq(Grade::getId, examGrade.getGradeId()));
+                            examResponse.setGradeName(grade.getName());
+                            examResponse.setClazzName("");
+                        } else {
+                            List<ExamClazz> clazzList = examClazzMapper.selectList(new LambdaQueryWrapper<ExamClazz>().eq(ExamClazz::getExamId, e.getId()));
+                            ArrayList<Integer> clazzIds = new ArrayList<>();
+                            clazzList.forEach(ee -> {
+                                clazzIds.add(ee.getClazzId());
+                            });
+                            StringBuilder clazzStr = new StringBuilder("");
+                            examResponse.setGradeName("");
+                            if (clazzIds.size() == 0) {
+                                return;
+                            }
+                            clazzMapper.selectList(new LambdaQueryWrapper<Clazz>().in(Clazz::getId, clazzIds)).forEach(
+                                    ee -> {
+                                        clazzStr.append("[" + ee.getName() + "] ");
+                                        if (examResponse.getGradeName().equals("")) {
+                                            Grade grade = gradeMapper.selectOne(new LambdaQueryWrapper<Grade>().eq(Grade::getId, ee.getGradeId()));
+                                            examResponse.setGradeName(grade.getName());
+                                        }
+                                    }
+                            );
+                            examResponse.setClazzName(clazzStr.toString());
+
+                        }
+                        List<ExamCourse> examCourses = examCourseMapper.selectList(new LambdaQueryWrapper<ExamCourse>().eq(ExamCourse::getExamId, e.getId()));
+                        ArrayList<Integer> examCourseIds = new ArrayList<>();
+                        examCourses.forEach(ee -> {
+                            examCourseIds.add(ee.getCourseId());
+                        });
+                        StringBuilder courseStr = new StringBuilder("");
+                        courseMapper.selectList(new LambdaQueryWrapper<Course>().in(Course::getId, examCourseIds)).forEach(
+                                ee -> {
+                                    courseStr.append("[" + ee.getName() + "]");
+                                }
+                        );
+                        examResponse.setCourseName(courseStr.toString());
+
+                        StringBuilder clazzRoom = new StringBuilder("");
+                        StringBuilder teacherNames = new StringBuilder("");
+                        List<ExamClazzroom> examClazzrooms = examClazzroomMapper.selectList(new LambdaQueryWrapper<ExamClazzroom>().eq(ExamClazzroom::getExamId, e.getId()));
+                        ArrayList<Integer> clazzRoomIds = new ArrayList<>();
+                        ArrayList<Integer> teacherIds = new ArrayList<>();
+                        examClazzrooms.forEach(ee -> {
+                            clazzRoomIds.add(ee.getClazzroomId());
+                            for (String s : ee.getTeachers().split(",")) {
+                                teacherIds.add(Integer.parseInt(s));
+                            }
+                        });
+                        clazzroomMapper.selectList(new LambdaQueryWrapper<Clazzroom>().in(Clazzroom::getId, clazzRoomIds)).forEach(ee -> {
+                            clazzRoom.append("[" + ee.getName() + "]");
+                        });
+                        examResponse.setClazzroomName(clazzRoom.toString());
+
+                        teacherMapper.selectList(new LambdaQueryWrapper<Teacher>().in(Teacher::getId,teacherIds)).forEach(ee->{
+                            teacherNames.append("[" + ee.getName() + "]");
+                        });
+                        examResponse.setTeacherNames(teacherNames.toString());
+                    }
+            );
+        }
+        return response;
+    }
+
+    @Override
     @Transactional
     public InsertResponse insert(ExamInsertRequest request, String token) {
         System.out.println("test" + request.getTime() + " " + request.getEnd());
