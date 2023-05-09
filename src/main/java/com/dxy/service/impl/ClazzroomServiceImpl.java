@@ -452,9 +452,7 @@ public class ClazzroomServiceImpl extends ServiceImpl<ClazzroomMapper, Clazzroom
 
             ArrayList<Integer> sid = new ArrayList<>();
             for (String s : e.getStudents().split(",")) {
-                if (Integer.parseInt(s) == student.getId()) {
-                    sid.add(Integer.parseInt(s));
-                }
+                sid.add(Integer.parseInt(s));
             }
             List<Student> students = studentMapper.selectList(new LambdaQueryWrapper<Student>().in(Student::getId, sid).orderByDesc(Student::getId));
             r.setStudents(new ArrayList<>());
@@ -464,6 +462,13 @@ public class ClazzroomServiceImpl extends ServiceImpl<ClazzroomMapper, Clazzroom
                 studentResponse.setClazzName(clazzMapper.selectOne(new LambdaQueryWrapper<Clazz>().eq(Clazz::getId, ee.getClazzId())).getName());
                 r.getStudents().add(studentResponse);
             });
+            int i = 0;
+            for (StudentResponse rStudent : r.getStudents()) {
+                i++;
+                if (rStudent.getId().equals(student.getId())){
+                    r.setId(i);
+                }
+            }
 
             ArrayList<Integer> tid = new ArrayList<>();
             StringBuilder teacherNames = new StringBuilder("");
