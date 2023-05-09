@@ -198,9 +198,10 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                         StringBuilder courseStr = new StringBuilder("");
                         courseMapper.selectList(new LambdaQueryWrapper<Course>().in(Course::getId, examCourseIds)).forEach(
                                 ee -> {
-                                    courseStr.append("[" + ee.getName() + "]");
+                                    courseStr.append(ee.getName() + ",");
                                 }
                         );
+                        courseStr.deleteCharAt(courseStr.length() - 1);
                         examResponse.setCourseName(courseStr.toString());
 
                         StringBuilder clazzRoom = new StringBuilder("");
@@ -215,13 +216,15 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                             }
                         });
                         clazzroomMapper.selectList(new LambdaQueryWrapper<Clazzroom>().in(Clazzroom::getId, clazzRoomIds)).forEach(ee -> {
-                            clazzRoom.append("[" + ee.getName() + "]");
+                            clazzRoom.append(ee.getName() + ",");
                         });
+                        clazzRoom.deleteCharAt(clazzRoom.length() - 1);
                         examResponse.setClazzroomName(clazzRoom.toString());
 
-                        teacherMapper.selectList(new LambdaQueryWrapper<Teacher>().in(Teacher::getId,teacherIds)).forEach(ee->{
-                            teacherNames.append("[" + ee.getName() + "]");
+                        teacherMapper.selectList(new LambdaQueryWrapper<Teacher>().in(Teacher::getId, teacherIds)).forEach(ee -> {
+                            teacherNames.append(ee.getName() + ",");
                         });
+                        teacherNames.deleteCharAt(teacherNames.length() - 1);
                         examResponse.setTeacherNames(teacherNames.toString());
                     }
             );
@@ -256,14 +259,14 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                 }
                 LambdaQueryWrapper<Exam> wrapper = new LambdaQueryWrapper<>();
                 if (keyword != null && !keyword.equals("")) {
-                    wrapper.ge(Exam::getTime,new Date(System.currentTimeMillis()))
+                    wrapper.ge(Exam::getTime, new Date(System.currentTimeMillis()))
                             .and(
-                            o -> o.like(Exam::getId, keyword)
-                                    .or()
-                                    .like(Exam::getName, keyword)
-                                    .or()
-                                    .like(Exam::getRemark, keyword)
-                    );
+                                    o -> o.like(Exam::getId, keyword)
+                                            .or()
+                                            .like(Exam::getName, keyword)
+                                            .or()
+                                            .like(Exam::getRemark, keyword)
+                            );
 
                 }
                 examPage = examMapper.selectPage(page, wrapper.in(Exam::getId, examIds));
@@ -377,13 +380,15 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                             }
                         });
                         clazzroomMapper.selectList(new LambdaQueryWrapper<Clazzroom>().in(Clazzroom::getId, clazzRoomIds)).forEach(ee -> {
-                            clazzRoom.append("[" + ee.getName() + "]");
+                            clazzRoom.append(ee.getName() + ",");
                         });
+                        clazzRoom.deleteCharAt(clazzRoom.length() - 1);
                         examResponse.setClazzroomName(clazzRoom.toString());
 
-                        teacherMapper.selectList(new LambdaQueryWrapper<Teacher>().in(Teacher::getId,teacherIds)).forEach(ee->{
-                            teacherNames.append("[" + ee.getName() + "]");
+                        teacherMapper.selectList(new LambdaQueryWrapper<Teacher>().in(Teacher::getId, teacherIds)).forEach(ee -> {
+                            teacherNames.append(ee.getName() + ",");
                         });
+                        teacherNames.deleteCharAt(teacherNames.length() - 1);
                         examResponse.setTeacherNames(teacherNames.toString());
                     }
             );
@@ -476,9 +481,10 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                 }
             }
 
+
             t = l + 1;
-            if (t < restClazzroom.size()) {
-                response.setError("该时间段无空闲的监考教师");
+            if (t > restTeachers.size()) {
+                response.setError("该时间段无足够的监考教师");
                 return response;
             }
 
@@ -495,6 +501,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
             exam.setType(request.getType());
             examMapper.insert(exam);
 
+            int k = 0;
             for (int i = 0; i <= l; i++) {
                 ExamClazzroom examClazzroom = new ExamClazzroom();
                 examClazzroom.setStart(request.getTime());
@@ -503,10 +510,18 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                 examClazzroom.setClazzroomId(restClazzroom.get(i).getId());
                 examClazzroom.setIsDeleted(false);
                 if (restTeachers.size() >= t * 2) {
-                    examClazzroom.setTeachers(restTeachers.get(i*2).getId()+","+restTeachers.get(i*2+1).getId());
-                }else{
-                    examClazzroom.setTeachers(restTeachers.get(i).getId()+"");
+                    examClazzroom.setTeachers(restTeachers.get(i * 2).getId() + "," + restTeachers.get(i * 2 + 1).getId());
+                } else {
+                    examClazzroom.setTeachers(restTeachers.get(i).getId() + "");
                 }
+                String s = "";
+                for (int j = 0; j < restClazzroom.get(i).getCount() && k < count; j++) {
+                    s += ss.get(k++).getId();
+                    if (j != restClazzroom.get(i).getCount() - 1) {
+                        s+=",";
+                    }
+                }
+                examClazzroom.setStudents(s);
                 examClazzroomMapper.insert(examClazzroom);
             }
 
@@ -566,7 +581,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
             tableLabels.add(courses.get(i).getName());
             headerString += "{label:" + "'" + courses.get(i).getName() + "平时分" + "',prop:'p" + i + "'}";
             headerString += ",{label:" + "'" + courses.get(i).getName() + "考试分" + "',prop:'k" + i + "'}";
-            headerString += ",{label:" + "'" + courses.get(i).getName() + "评价" + "',prop:'l" + i + "'}";
+            headerString += ",{label:" + "'" + "评价" + "',prop:'l" + i + "'}";
             if (i != courses.size() - 1) {
                 headerString += ",";
             }

@@ -1,11 +1,13 @@
 package com.dxy.response;
 
+import com.dxy.pojo.Student;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -34,6 +36,10 @@ public class ExamResponse{
     private String clazzroomName;
 
     private String teacherNames;
+
+    private String studentNames;
+
+    private List<Student> students;
     
     private String teachers;
 }

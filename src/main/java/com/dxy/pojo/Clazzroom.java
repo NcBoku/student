@@ -17,4 +17,6 @@ public class Clazzroom {
 
     private Integer count;
 
+    private String location;
+
 }

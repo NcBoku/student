@@ -184,6 +184,7 @@ public class ClazzroomServiceImpl extends ServiceImpl<ClazzroomMapper, Clazzroom
                 )
         );
 
+
         List<Integer> ids = new ArrayList<>();
         usedClazzroom.forEach(
                 e -> {
@@ -270,21 +271,45 @@ public class ClazzroomServiceImpl extends ServiceImpl<ClazzroomMapper, Clazzroom
             StringBuilder courseStr = new StringBuilder("");
             courseMapper.selectList(new LambdaQueryWrapper<Course>().in(Course::getId, examCourseIds)).forEach(
                     ee -> {
-                        courseStr.append("[" + ee.getName() + "]");
+                        courseStr.append(ee.getName() + ",");
                     }
             );
+            courseStr.deleteCharAt(courseStr.length() - 1);
             examResponse.setCourseName(courseStr.toString());
 
             StringBuilder clazzRoom = new StringBuilder("");
+            StringBuilder teacherNames = new StringBuilder("");
+            StringBuilder studentNames = new StringBuilder("");
             List<ExamClazzroom> examClazzrooms = examClazzroomMapper.selectList(new LambdaQueryWrapper<ExamClazzroom>().eq(ExamClazzroom::getExamId, e.getId()));
             ArrayList<Integer> clazzRoomIds = new ArrayList<>();
+            ArrayList<Integer> tids = new ArrayList<>();
+            ArrayList<Integer> sids = new ArrayList<>();
             examClazzrooms.forEach(ee -> {
                 clazzRoomIds.add(ee.getClazzroomId());
+                for (String s : ee.getTeachers().split(",")) {
+                    tids.add(Integer.parseInt(s));
+                }
+                for (String s : ee.getStudents().split(",")) {
+                    sids.add(Integer.parseInt(s));
+                }
+            });
+            teacherMapper.selectList(new LambdaQueryWrapper<Teacher>().in(Teacher::getId, tids)).forEach(ee -> {
+                teacherNames.append(ee.getName() + ",");
+            });
+            List<Student> students = studentMapper.selectList(new LambdaQueryWrapper<Student>().in(Student::getId, sids));
+            students.forEach(ee -> {
+                studentNames.append(ee.getName() + ",");
             });
             clazzroomMapper.selectList(new LambdaQueryWrapper<Clazzroom>().in(Clazzroom::getId, clazzRoomIds)).forEach(ee -> {
-                clazzRoom.append("[" + ee.getName() + "]");
+                clazzRoom.append(ee.getName() + ",");
             });
+            teacherNames.deleteCharAt(teacherNames.length() - 1);
+            examResponse.setTeacherNames(teacherNames.toString());
+            clazzRoom.deleteCharAt(clazzRoom.length() - 1);
             examResponse.setClazzroomName(clazzRoom.toString());
+            studentNames.deleteCharAt(studentNames.length() - 1);
+            examResponse.setStudentNames(studentNames.toString());
+            examResponse.setStudents(students);
         });
         return response;
     }

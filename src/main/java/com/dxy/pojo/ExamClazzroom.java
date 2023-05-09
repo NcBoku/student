@@ -28,5 +28,7 @@ public class ExamClazzroom {
 
     private String teachers;
 
+    private String students;
+
     private Boolean isDeleted;
 }

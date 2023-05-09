@@ -7,10 +7,7 @@ import com.dxy.pojo.Clazz;
 import com.dxy.pojo.Clazzroom;
 import com.dxy.pojo.Teacher;
 import com.dxy.request.PageGetRequest;
-import com.dxy.response.ClazzroomPageResponse;
-import com.dxy.response.ClazzroomResponse;
-import com.dxy.response.InsertResponse;
-import com.dxy.response.UpdateResponse;
+import com.dxy.response.*;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
