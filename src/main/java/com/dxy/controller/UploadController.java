@@ -50,4 +50,28 @@ public class UploadController {
         return visibleUri;
     }
 
+    @PostMapping("/up")
+    public String upload(@RequestPart("file") MultipartFile file) {
+
+        String fileName = file.getOriginalFilename();  //获取文件原名
+        fileName = System.currentTimeMillis() + "-img." + fileName.substring(fileName.lastIndexOf(".")+1);
+
+        String visibleUri = "/" + fileName;                //拼接访问图片的地址
+        String saveUri = uploadPath + "/" + fileName;        //拼接保存图片的真实地址
+
+        System.out.println("图片原文件名=" + fileName + "图片访问地址=" + visibleUri + " 图片保存真实地址={}" + saveUri);
+
+        File saveFile = new File(saveUri);
+        //判断是否存在文件夹，不存在就创建
+        if (!saveFile.exists()) {
+            saveFile.mkdirs();
+        }
+        try {
+            file.transferTo(saveFile);  //保存文件到真实存储路径下
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return visibleUri;
+    }
 }
