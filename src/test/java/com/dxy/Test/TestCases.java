@@ -22,30 +22,11 @@ import java.util.Date;
 public class TestCases {
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
-    private ClazzService clazzService;
-
-    @Autowired
-    private StudentService studentService;
-
-    @Autowired
-    private ExamService examService;
-
-    @Autowired
-    private ClazzroomService clazzroomService;
+    private ScoreService scoreService;
 
     @Test
     public void test10() {
-        String s="a";
-        String b="a,b,c";
-        for (String s1 : s.split(",")) {
-            System.out.println(s1);
-        }
-        for (String s1 : b.split(",")) {
-            System.out.println(s1);
-        }
+
     }
 
 }

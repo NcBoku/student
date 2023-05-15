@@ -14,6 +14,6 @@ public class LoginInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String token = request.getHeader("X-Token");
-        return request.getMethod().equals("OPTIONS") || token != null && JwtUtil.verify(token) && !JwtUtil.isExpired(token);
+        return request.getMethod().equals("OPTIONS")||request.getMethod().equalsIgnoreCase("get") || token != null && JwtUtil.verify(token) && !JwtUtil.isExpired(token);
     }
 }

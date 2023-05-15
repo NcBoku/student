@@ -34,7 +34,8 @@ public class InterceptorConfig extends WebMvcConfigurationSupport {
                 .addPathPatterns("/**")
                 .excludePathPatterns("/user/login")
                 .excludePathPatterns("/images/**")
-                .excludePathPatterns("/upload/**");
+                .excludePathPatterns("/upload/**")
+                .excludePathPatterns("/excel/**");
         super.addInterceptors(registry);
     }
 }
