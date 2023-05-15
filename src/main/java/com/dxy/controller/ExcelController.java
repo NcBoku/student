@@ -15,6 +15,7 @@ import com.dxy.util.ExcelUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -60,9 +61,10 @@ public class ExcelController {
     }
 
     @PostMapping("/upload/student")
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public UpdateResponse student(@RequestParam("file") MultipartFile multipartFile, @RequestHeader("X-Token") String token) {
         UpdateResponse response = new UpdateResponse();
+        ArrayList<Student> students = new ArrayList<>();
         List<StudentExcel> studentExcels = ExcelUtil.importStudentExcel(multipartFile);
         for (StudentExcel e : studentExcels) {
             Student student = new Student();
@@ -79,18 +81,21 @@ public class ExcelController {
             BeanUtils.copyProperties(e, student);
             student.setGradeId(grade.getId());
             student.setClazzId(clazz.getId());
-            studentService.insert(student, token);
-
+            students.add(student);
         }
+        students.forEach(e->{
+            studentService.insert(e, token);
+        });
         response.setCode(20000);
         response.setError("上传完毕");
         return response;
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     @PostMapping("/upload/teacher")
     public UpdateResponse teacher(@RequestParam("file") MultipartFile multipartFile, @RequestHeader("X-Token") String token) {
         UpdateResponse response = new UpdateResponse();
+        ArrayList<TeacherUpdateRequest> teachers = new ArrayList<>();
         List<TeacherExcel> teacherExcels = ExcelUtil.importTeacherExcel(multipartFile);
         for (TeacherExcel e : teacherExcels) {
             TeacherUpdateRequest teacher = new TeacherUpdateRequest();
@@ -100,11 +105,15 @@ public class ExcelController {
                 Course course = courseMapper.selectOne(new LambdaQueryWrapper<Course>().eq(Course::getName, s));
                 if (course == null) {
                     response.setError("不存在名为" + s + "的课程");
+                    return response;
                 }
                 teacher.getCourseIds().add(course.getId());
             }
-            teacherService.insert(teacher, token);
+            teachers.add(teacher);
         }
+        teachers.forEach(e->{
+            teacherService.insert(e, token);
+        });
         response.setCode(20000);
         response.setError("上传完毕");
         return response;

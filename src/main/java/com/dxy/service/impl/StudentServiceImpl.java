@@ -16,6 +16,7 @@ import com.dxy.util.UserUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -127,7 +128,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NESTED)
     public UpdateResponse insert(Student student, String token) {
         UpdateResponse response = new UpdateResponse();
         response.setCode(20001);
