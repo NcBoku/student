@@ -21,4 +21,5 @@ public interface ScoreService extends IService<Score> {
     UpdateResponse update(@RequestBody List<Score> scoreList, @RequestHeader("X-Token") String token);
     void getScoreExcelData(HttpServletResponse response);
     void getScoreExcelData(List<Integer> ids,HttpServletResponse response);
+
 }

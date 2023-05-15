@@ -26,7 +26,7 @@ public class UploadController {
         User user = UserUtil.get(token);
 
         String fileName = file.getOriginalFilename();  //获取文件原名
-        fileName = user.getId() + "-avatar." + fileName.substring(fileName.lastIndexOf(".")+1);
+        fileName = user.getId() + "-" + user.getName() + "-avatar." + fileName.substring(fileName.lastIndexOf(".") + 1);
 
         user.setAvatar("http://localhost:8080/images/" + fileName);
         userService.update(user);
@@ -54,7 +54,7 @@ public class UploadController {
     public String upload(@RequestPart("file") MultipartFile file) {
 
         String fileName = file.getOriginalFilename();  //获取文件原名
-        fileName = System.currentTimeMillis() + "-img." + fileName.substring(fileName.lastIndexOf(".")+1);
+        fileName = System.currentTimeMillis() + "-img." + fileName.substring(fileName.lastIndexOf(".") + 1);
 
         String visibleUri = "/" + fileName;                //拼接访问图片的地址
         String saveUri = uploadPath + "/" + fileName;        //拼接保存图片的真实地址
