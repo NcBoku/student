@@ -53,10 +53,15 @@ public class ExcelController {
 
     }
 
-    @GetMapping("/score/ids")
-    public void score(List<Integer> ids, HttpServletResponse response) {
+    @GetMapping("/score/{ids}")
+    public void score(@PathVariable("ids")String ids, HttpServletResponse response) {
         System.out.println("开始");
-        scoreService.getScoreExcelData(ids, response);
+        String[] split = ids.split(",");
+        ArrayList<Integer> integers = new ArrayList<>();
+        for (String s : split) {
+            integers.add(Integer.parseInt(s));
+        }
+        scoreService.getScoreExcelData(integers, response);
 
     }
 
