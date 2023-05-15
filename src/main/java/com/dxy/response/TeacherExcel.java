@@ -13,7 +13,7 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TeacherExcel {
-    @Excel(name="学号")
+    @Excel(name="工号")
     private String number;
     @Excel(name="姓名")
     private String name;
