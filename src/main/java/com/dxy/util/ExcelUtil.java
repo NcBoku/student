@@ -8,7 +8,9 @@ import cn.afterturn.easypoi.excel.entity.ImportParams;
 import cn.afterturn.easypoi.excel.entity.enmus.ExcelType;
 import cn.afterturn.easypoi.excel.export.styler.AbstractExcelExportStyler;
 import cn.afterturn.easypoi.excel.export.styler.IExcelExportStyler;
+import com.dxy.pojo.Clazz;
 import com.dxy.pojo.Exam;
+import com.dxy.pojo.Teacher;
 import com.dxy.response.ScoreExcel;
 import com.dxy.response.StudentExcel;
 import com.dxy.response.TeacherExcel;
@@ -61,6 +63,45 @@ public class ExcelUtil {
         exportExcel(maps, response);
     }
 
+    public static void exportStudentsExcel(HashMap<Clazz, List<StudentExcel>> exams, HttpServletResponse response) {
+        System.out.println("util");
+        List<Map<String, Object>> maps = new ArrayList<>();
+        exams.forEach(
+                (k, v) -> {
+                    ExportParams exportParams = new ExportParams();
+                    exportParams.setStyle(ExcelExportMyStylerImpl.class);
+                    exportParams.setHeight((short) 8);
+                    exportParams.setType(ExcelType.XSSF);
+                    exportParams.setSheetName(k.getName());
+                    HashMap<String, Object> map = new HashMap<>();
+                    map.put("data", v);
+                    map.put("title", exportParams);
+                    map.put("entity", ScoreExcel.class);
+                    maps.add(map);
+                }
+        );
+        exportExcel(maps, response);
+    }
+
+    public static void exportTeachersExcel(HashMap<Clazz, List<TeacherExcel>> exams, HttpServletResponse response) {
+        System.out.println("util");
+        List<Map<String, Object>> maps = new ArrayList<>();
+        exams.forEach(
+                (k, v) -> {
+                    ExportParams exportParams = new ExportParams();
+                    exportParams.setStyle(ExcelExportMyStylerImpl.class);
+                    exportParams.setHeight((short) 8);
+                    exportParams.setType(ExcelType.XSSF);
+                    exportParams.setSheetName(k.getName());
+                    HashMap<String, Object> map = new HashMap<>();
+                    map.put("data", v);
+                    map.put("title", exportParams);
+                    map.put("entity", ScoreExcel.class);
+                    maps.add(map);
+                }
+        );
+        exportExcel(maps, response);
+    }
 
     public static List<StudentExcel> importStudentExcel(MultipartFile file) {
         ImportParams importParams = new ImportParams();
