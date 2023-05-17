@@ -59,7 +59,7 @@ public class UploadController {
         String visibleUri = "/" + fileName;                //拼接访问图片的地址
         String saveUri = uploadPath + "/" + fileName;        //拼接保存图片的真实地址
 
-        System.out.println("图片原文件名=" + fileName + "图片访问地址=" + visibleUri + " 图片保存真实地址={}" + saveUri);
+        System.out.println("图片原文件名=" + fileName + "图片访问地址=" + visibleUri + " 图片保存真实地址=" + saveUri);
 
         File saveFile = new File(saveUri);
         //判断是否存在文件夹，不存在就创建
