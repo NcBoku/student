@@ -70,9 +70,9 @@ public class ExcelController {
 
     }
 
-    @PostMapping("/upload/student")
+    @PostMapping("/upload/student/{token}")
     @Transactional(propagation = Propagation.NESTED)
-    public UpdateResponse student(@RequestParam("file") MultipartFile multipartFile, @RequestHeader("X-Token") String token) {
+    public UpdateResponse student(@RequestParam("file") MultipartFile multipartFile, @PathVariable("token") String token) {
         UpdateResponse response = new UpdateResponse();
         ArrayList<Student> students = new ArrayList<>();
         List<StudentExcel> studentExcels = ExcelUtil.importStudentExcel(multipartFile);
@@ -102,8 +102,8 @@ public class ExcelController {
     }
 
     @Transactional(propagation = Propagation.NESTED)
-    @PostMapping("/upload/teacher")
-    public UpdateResponse teacher(@RequestParam("file") MultipartFile multipartFile, @RequestHeader("X-Token") String token) {
+    @PostMapping("/upload/teacher/{token}")
+    public UpdateResponse teacher(@RequestParam("file") MultipartFile multipartFile, @PathVariable("token") String token) {
         UpdateResponse response = new UpdateResponse();
         ArrayList<TeacherUpdateRequest> teachers = new ArrayList<>();
         List<TeacherExcel> teacherExcels = ExcelUtil.importTeacherExcel(multipartFile);

@@ -76,7 +76,7 @@ public class ExcelUtil {
                     HashMap<String, Object> map = new HashMap<>();
                     map.put("data", v);
                     map.put("title", exportParams);
-                    map.put("entity", ScoreExcel.class);
+                    map.put("entity", StudentExcel.class);
                     maps.add(map);
                 }
         );
@@ -96,7 +96,7 @@ public class ExcelUtil {
                     HashMap<String, Object> map = new HashMap<>();
                     map.put("data", v);
                     map.put("title", exportParams);
-                    map.put("entity", ScoreExcel.class);
+                    map.put("entity", TeacherExcel.class);
                     maps.add(map);
                 }
         );

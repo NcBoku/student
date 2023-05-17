@@ -49,6 +49,9 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     @Autowired
     private ExamCourseMapper examCourseMapper;
 
+    @Autowired
+    private ExamClazzroomMapper examClazzroomMapper;
+
 
     @Override
     @Transactional
@@ -146,15 +149,15 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
                 List<ExamGrade> examGrades = examGradeMapper.selectList(new LambdaQueryWrapper<ExamGrade>().eq(ExamGrade::getGradeId, clazz.getGradeId()));
                 List<ExamClazz> examClazz = examClazzMapper.selectList(new LambdaQueryWrapper<ExamClazz>().eq(ExamClazz::getClazzId, clazz.getId()));
                 ArrayList<Integer> examIds = new ArrayList<>();
-                examGrades.forEach(e->{
+                examGrades.forEach(e -> {
                     examIds.add(e.getExamId());
                 });
-                examClazz.forEach(e->{
+                examClazz.forEach(e -> {
                     examIds.add(e.getExamId());
                 });
-                examIds.forEach(id->{
+                examIds.forEach(id -> {
                     List<ExamCourse> examCourses = examCourseMapper.selectList(new LambdaQueryWrapper<ExamCourse>().eq(ExamCourse::getExamId, id));
-                    examCourses.forEach(e->{
+                    examCourses.forEach(e -> {
                         Score score = new Score();
                         score.setStudentId(student.getId());
                         score.setClazzId(student.getClazzId());
@@ -183,12 +186,34 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
             });
 
             List<Student> students = studentMapper.selectList(new LambdaQueryWrapper<Student>().in(Student::getId, ids));
-            students.forEach(e->{
+            students.forEach(e -> {
                 uids.add(e.getUserId());
             });
 
+            List<ExamClazzroom> examClazzrooms = examClazzroomMapper.selectList(null);
+            StringBuilder sb = new StringBuilder("");
+            examClazzrooms.forEach(e -> {
+                String str = e.getStudents();
+                for (String s : str.split(",")) {
+                    int id = Integer.parseInt(s);
+                    boolean isAdd = true;
+                    for (Integer integer : ids) {
+                        if (integer == id) {
+                            isAdd = false;
+                        }
+                    }
+                    if (isAdd) {
+                        sb.append(s + ",");
+                    }
+                }
+                sb.deleteCharAt(sb.length() - 1);
+                e.setStudents(sb.toString());
+                examClazzroomMapper.update(e, new LambdaQueryWrapper<ExamClazzroom>().eq(ExamClazzroom::getId, e.getId()));
+            });
+
+            scoreMapper.delete(new LambdaQueryWrapper<Score>().in(Score::getStudentId, ids));
             if (studentMapper.delete(new LambdaQueryWrapper<Student>().in(Student::getId, ids)) == student.size()
-                    &&userMapper.delete(new LambdaQueryWrapper<User>().in(User::getId,uids)) == students.size()) {
+                    && userMapper.delete(new LambdaQueryWrapper<User>().in(User::getId, uids)) == students.size()) {
                 response.setCode(20000);
             }
         }

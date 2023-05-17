@@ -3,10 +3,7 @@ package com.dxy.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.dxy.mapper.CourseMapper;
-import com.dxy.mapper.TeacherCourseMapper;
-import com.dxy.mapper.TeacherMapper;
-import com.dxy.mapper.UserMapper;
+import com.dxy.mapper.*;
 import com.dxy.pojo.*;
 import com.dxy.request.PageGetRequest;
 import com.dxy.request.StudentUpdateRequest;
@@ -37,6 +34,9 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private ExamClazzroomMapper examClazzroomMapper;
 
     @Override
     public UpdateResponse update(StudentUpdateRequest request, String token) {
@@ -138,6 +138,26 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
             for (Teacher teacher : list) {
                 uids.add(teacher.getUserId());
             }
+            List<ExamClazzroom> examClazzrooms = examClazzroomMapper.selectList(null);
+            StringBuilder sb = new StringBuilder("");
+            examClazzrooms.forEach(e -> {
+                String str = e.getTeachers();
+                for (String s : str.split(",")) {
+                    int id = Integer.parseInt(s);
+                    boolean isAdd = true;
+                    for (Integer integer : ids) {
+                        if (integer == id) {
+                            isAdd = false;
+                        }
+                    }
+                    if (isAdd) {
+                        sb.append(s + ",");
+                    }
+                }
+                sb.deleteCharAt(sb.length() - 1);
+                e.setTeachers(sb.toString());
+                examClazzroomMapper.update(e, new LambdaQueryWrapper<ExamClazzroom>().eq(ExamClazzroom::getId, e.getId()));
+            });
 
             if (teacherMapper.delete(new LambdaQueryWrapper<Teacher>().in(Teacher::getId, ids)) == teachers.size()&&
             userMapper.delete(new LambdaQueryWrapper<User>().in(User::getId,uids))==uids.size()) {
